@@ -1,0 +1,170 @@
+---
+title: "Trash related service requests and ECB citations"
+output: html_document
+params:
+  area_name: ["Ellwood Park/Monument", "Baltimore Highlands"]
+  area_type: "neighborhood"
+  # If union is TRUE, the union_name is required
+  union: FALSE # TRUE
+  union_name: NULL
+  # Map parameters
+  asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
+  diag_ratio: 0.08
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(sf)
+library(mapbaltimore)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(lubridate)
+```
+
+## Get area
+
+```{r get_area}
+# Get an sf object with all neighborhoods unioned into a single area
+area <- get_area(params$area_type,
+                 params$area_name,
+                 union = params$union)
+
+if (params$union) {
+  area$name <- params$union_name
+
+# Get an sf object with no union
+  area_not_union <-
+  get_area(
+    params$area_type,
+    params$area_name,
+    union = FALSE)
+}
+
+# Make adjusted bounding boxes for later use
+bbox_adj <-
+  adjust_bbox(
+    area = area,
+    diag_ratio = params$diag_ratio,
+    asp = params$asp)
+
+
+area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashed")
+
+```
+
+## Get selected requests
+
+```{r get_requests, echo=FALSE}
+sr_path <-
+  "https://egis.baltimorecity.gov/egis/rest/services/GeoSpatialized_Tables/ServiceRequest_311/FeatureServer/0"
+
+requests <-
+  get_area_esri_data(area = area,
+                     url = sr_path)
+
+# Define list of trash-related request types
+select_request_types <-
+  c("HCD-Sanitation Property",
+    "HCD-Illegal Dumping",
+    "SW-Dirty Street",
+    "SW-Dirty Alley",
+    "SW-Municipal Trash Can Concern")
+
+requests <- requests %>% 
+    # janitor::clean_names() %>% # Clean variable names
+  filter(
+    !str_detect(sr_status, "Duplicate"), # Remove duplicates
+    sr_type %in% select_request_types) %>% # Filter to selected request types
+  mutate(
+    # Fix date formatting
+    across(ends_with("date"), ~ as.POSIXct(.x / 1000, origin = "1970-01-01")),
+    # Calculate the number of days to created to closed
+    days_to_close = case_when(
+      sr_status == "Closed" ~ int_length(interval(ymd_hms(created_date), ymd_hms(close_date))) / 86400) %>% round(digits = 2) # Add days to close column for all closed service requests
+  )
+```
+
+```{r map_requests, echo=FALSE}
+requests %>% 
+  ggplot() +
+  geom_sf(aes(color = sr_type)) +
+  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
+  theme_void()
+
+requests %>% 
+  ggplot() +
+  geom_sf(aes(color = days_to_close), alpha = 0.6) +
+  area_layer +
+  scale_color_viridis_c() +
+  theme_void()
+```
+
+```{r plot_requests}
+requests %>% 
+  ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
+  geom_point() +
+  theme_minimal()
+```
+
+```{r request_table}
+requests %>%
+  st_drop_geometry() %>% 
+  count(sr_type, name = "requests", sort = TRUE) %>% 
+  gt::gt()
+```
+
+## Get selected citations
+
+```{r get_citations}
+citation_path <- "https://opendata.baltimorecity.gov/egis/rest/services/NonSpatialTables/ECB/FeatureServer/0"
+
+# FIXME: Area type is not based on parameter and the area name would not work if multiple areas are provided
+
+if (params$area_type != "neighborhood") {
+  warning("This script only supports neighborhood area types.")
+}
+if (length(area$name) == 1) {
+  query <- paste0("Neighborhood = '", area$name, "'")
+} else {
+  warning("This script currently only supports one neighborhood at a time curently.")
+}
+
+citations <- esri2sf::esri2df(
+      citation_path,
+      where = query)
+
+citations <- citations %>%
+  janitor::clean_names("snake") %>%
+  mutate(
+    across(ends_with("date"), ~ as.POSIXct(.x / 1000, origin = "1970-01-01"))
+  )
+
+trash_citations <- citations %>%
+  tidyr::separate(location, c("lat", "lon"), ",") %>%
+  mutate(
+    lat = readr::parse_number(lat),
+    lon = readr::parse_number(lon)
+  ) %>%
+  filter(!is.na(lat)) %>%
+  st_as_sf(
+    coords = c("lon", "lat"),
+    crs = 4326
+  ) %>%
+  sf::st_transform(2804) %>%
+  filter(
+    year(violation_date) >= 2016,
+    str_detect(description, "TRASH")
+  )
+```
+
+
+```{r map_citations}
+trash_citations %>% 
+  ggplot() +
+  geom_sf(aes(color = description)) +
+  area_layer +
+  theme_void()
+  
+```
