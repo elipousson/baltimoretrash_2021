@@ -1,0 +1,150 @@
+---
+title: "Housing"
+output: html_document
+params:
+  area_name: "Ellwood Park/Monument"
+  area_type: "neighborhood"
+  # If union is TRUE, the union_name is required
+  union: FALSE # TRUE
+  union_name: NULL
+  # Map parameters
+  asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
+  diag_ratio: 0.08
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      cache = TRUE,
+                      fig.width = 12,
+                      fig.height = 8)
+
+library(sf)
+library(mapbaltimore)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(lubridate)
+```
+
+## Get area
+
+```{r get_area}
+# Get an sf object with all neighborhoods unioned into a single area
+area <- get_area(params$area_type,
+                 params$area_name,
+                 union = params$union)
+
+if (params$union) {
+  area$name <- params$union_name
+
+# Get an sf object with no union
+  area_not_union <-
+  get_area(
+    params$area_type,
+    params$area_name,
+    union = FALSE)
+}
+
+# Make adjusted bounding boxes for later use
+bbox_adj <-
+  adjust_bbox(
+    area = area,
+    diag_ratio = params$diag_ratio,
+    asp = params$asp)
+
+area_adj <- bbox_adj %>%
+  sf::st_as_sfc() %>%
+  sf::st_as_sf()
+
+base_layer <- list(
+  layer_area_data(area = area_adj, data = parks, fill = "forestgreen", alpha = 0.6, color = NA),
+            layer_area_streets(area = area_adj, color = "gray75"),
+          layer_area_streets(area = area_adj, sha_class = "all", color = "gray55")
+)
+
+area_layer <- list(
+  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed"),
+  layer_area_streets(area = area, sha_class = "all", name_location = "topright", show_streets = FALSE, show_names = TRUE, size = 3)
+  )
+
+```
+
+
+```{r}
+hcd_requests <-
+  get_area_requests(area = area, agency = "Housing")
+
+hcd_requests %>% 
+  ggplot() +
+  geom_bar(
+    aes(x = reorder(sr_type, sr_type, function(x) length(x)),
+        fill = sr_type)) +
+  coord_flip() +
+  scale_fill_viridis_d() +
+  guides(fill = "none") +
+  labs(x = "Service request type",
+       y = "Number of requests",
+       title = "311 service requests assigned to HCD in 2021") +
+  theme_minimal()
+
+hcd_requests %>% 
+  filter(sr_type %in% c("HCD-Illegal Dumping", "HCD-Sanitation Property", "HCD-Vacant Building", "HCD-Maitenance Structure")) %>% 
+  ggplot() +
+  base_layer +
+  geom_sf(aes(color = sr_type), alpha = 0.6) +
+  scale_color_viridis_d(end = 0.8) +
+  area_layer +
+  facet_wrap(~sr_type) +
+  guides(color = "none") +
+  theme_void() +
+  labs(title = "Selected 311 service requests in 2021") +
+  set_map_limits(area_adj)
+
+```
+
+
+```{r}
+# https://egisdata.baltimorecity.gov/egis/rest/services/Housing/DHCD_Open_Baltimore_Datasets/FeatureServer/1
+vbn <- read_sf("https://opendata.arcgis.com/datasets/70de1e9137ce455aaee58f38b281d2cc_1.geojson")
+
+area_vbn <-
+  get_area_data(area = area,
+              data = st_transform(vbn, 2804))
+
+area_vbn %>% 
+  ggplot() +
+  base_layer +
+  geom_sf(color = "darkred", alpha = 0.6) +
+  area_layer +
+  theme_void() +
+  labs(title = "Open vacant building notices")
+```
+
+
+```{r}
+# https://egisdata.baltimorecity.gov/egis/rest/services/Housing/DHCD_Open_Baltimore_Datasets/FeatureServer/3
+
+permits <- read_sf("https://opendata.arcgis.com/datasets/9f235fe8513d4cabbfb7de329af91e83_3.geojson")
+
+area_permits <-
+  get_area_data(
+    area = area,
+    data = st_transform(permits, 2804)) %>% 
+  janitor::clean_names("snake") %>% 
+  mutate(
+    permit_type = str_sub(case_number, end = 3)
+  )
+
+area_permits %>% 
+  filter(permit_type == "USE") %>%
+  ggplot(aes(x = yq(quarter(issued_date, with_year = TRUE)))) +
+  geom_bar() +
+  labs(title = "Use and occupancy permits issued by quarter",
+       y = "Permits issued",
+       x = "Quarter") +
+  theme_minimal()
+```
+
+
+
+
