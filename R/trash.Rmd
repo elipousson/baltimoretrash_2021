@@ -57,9 +57,11 @@ area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashe
 ## Get selected requests
 
 ```{r get_requests, echo=FALSE}
+# Define path for geospatial table with 2021 service request data
 sr_path <-
   "https://egis.baltimorecity.gov/egis/rest/services/GeoSpatialized_Tables/ServiceRequest_311/FeatureServer/0"
 
+# Get service requests for area
 requests <-
   get_area_esri_data(area = area,
                      url = sr_path)
