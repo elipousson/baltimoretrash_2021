@@ -70,7 +70,8 @@ select_request_types <-
     "HCD-Illegal Dumping",
     "SW-Dirty Street",
     "SW-Dirty Alley",
-    "SW-Municipal Trash Can Concern")
+    "SW-Municipal Trash Can Concern",
+    "SW-Municipal Trash Can Stolen/Lost")
 
 requests <- requests %>% 
     # janitor::clean_names() %>% # Clean variable names
