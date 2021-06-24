@@ -202,9 +202,23 @@ trash_citations %>%
   theme(axis.text.y = element_text(size = 5))
 ```
 ```{r citations_table}
-  trash_citations %>%
-    st_drop_geometry() %>% 
-    count(block, name = "Citations", sort = TRUE) %>% 
-    gt::gt()
+trash_citations %>%
+  st_drop_geometry() %>%
+  count(block, name = "Citations", sort = TRUE) %>%
+  gt::gt()
   
+```
+##Citation status 
+
+```{r citations_status}
+trash_citations %>%
+  ggplot() +
+  geom_bar(mapping = aes(x = citation_status, fill = description))
+
+```
+```{r citation_status_table}
+trash_citations %>%
+  st_drop_geometry() %>%
+  count(citation_status, name = "citations") %>%
+  gt::gt()
 ```
