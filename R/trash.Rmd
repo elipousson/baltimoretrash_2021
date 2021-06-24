@@ -185,6 +185,13 @@ trash_citations %>%
     geom_bar(mapping = aes(x = as.factor(block))) +
     coord_flip() +
     theme(axis.text.y = element_text(size = 5))
+
+library(WVPlots)
+trash_citations %>%
+  ClevelandDotPlot("block", sort = 1, title = "Citations per block") +
+  coord_flip() +
+  theme(axis.text.y = element_text(size = 5))
+
 ```
 
 ```{r citation_type}
@@ -193,4 +200,11 @@ trash_citations %>%
   geom_bar(mapping = aes(x = as.factor(block), fill = description)) +
   coord_flip() +
   theme(axis.text.y = element_text(size = 5))
+```
+```{r citations_table}
+  trash_citations %>%
+    st_drop_geometry() %>% 
+    count(block, name = "Citations", sort = TRUE) %>% 
+    gt::gt()
+  
 ```
