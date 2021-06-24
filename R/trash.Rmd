@@ -159,9 +159,14 @@ trash_citations <- citations %>%
   filter(
     year(violation_date) >= 2016,
     str_detect(description, "TRASH")
+  ) %>% 
+  # Pull street number (address), block number, and street name from location
+  mutate(
+    street_number = readr::parse_number(violation_location),
+    block_number = floor(street_number/100) * 100,
+    street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}")))
   )
 ```
-
 
 ```{r map_citations}
 trash_citations %>% 
@@ -172,18 +177,20 @@ trash_citations %>%
   
 ```
 
-##get citation location (block)
+## Plot citations by block
+
 ```{r citation_block}
-  block <- trash_citations$block
-  trash_citations$block <- as.factor(trash_citations$block)
-  
-  ggplot(data = trash_citations) +
-    geom_bar(mapping = aes(x = block)) + coord_flip()+
-    theme(axis.text.y = element_text(size=5)) 
-  
+trash_citations %>% 
+  ggplot() +
+    geom_bar(mapping = aes(x = as.factor(block))) +
+    coord_flip() +
+    theme(axis.text.y = element_text(size = 5))
 ```
-```{r citation type}
-  ggplot(data = trash_citations) +
-    geom_bar(mapping = aes(x = block, fill=description)) + coord_flip()+
-    theme(axis.text.y = element_text(size=5))
+
+```{r citation_type}
+trash_citations %>%
+  ggplot() +
+  geom_bar(mapping = aes(x = as.factor(block), fill = description)) +
+  coord_flip() +
+  theme(axis.text.y = element_text(size = 5))
 ```
