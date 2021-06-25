@@ -227,3 +227,8 @@ trash_citations %>%
   coord_flip() +
   theme(axis.text.y = element_text(size = 5))
 ```
+```{r citations_over_time}
+trash_citations %>%
+  ggplot() +
+  geom_freqpoly(mapping = aes(x=violation_date))
+```
