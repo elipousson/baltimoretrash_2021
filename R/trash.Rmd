@@ -227,8 +227,16 @@ trash_citations %>%
   coord_flip() +
   theme(axis.text.y = element_text(size = 5))
 ```
-```{r citations_over_time}
+```{r total_citations_over_time}
+#review this graph (binwidth)
 trash_citations %>%
   ggplot() +
   geom_freqpoly(mapping = aes(x=violation_date))
+```
+```{r citation_status_over_timer}
+#review this graph - Different way to plot this out? Maybe 4 line graphs?
+trash_citations %>% 
+  ggplot(aes(x = violation_date, y = citation_status, color = citation_status), alpha = 0.6) +
+  geom_point() +
+  theme_minimal()
 ```
