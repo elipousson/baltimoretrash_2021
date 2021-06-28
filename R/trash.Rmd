@@ -14,7 +14,7 @@ params:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 library(sf)
 library(mapbaltimore)
@@ -22,6 +22,9 @@ library(ggplot2)
 library(dplyr)
 library(stringr)
 library(lubridate)
+
+# Set default theme
+theme_set(theme_minimal())
 ```
 
 ## Get area
@@ -43,21 +46,13 @@ if (params$union) {
     union = FALSE)
 }
 
-# Make adjusted bounding boxes for later use
-bbox_adj <-
-  adjust_bbox(
-    area = area,
-    diag_ratio = params$diag_ratio,
-    asp = params$asp)
-
-
 area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashed")
 
 ```
 
 ## Get selected requests
 
-```{r get_requests, echo=FALSE}
+```{r get_requests}
 
 # Define list of trash-related request types
 select_request_types <-
@@ -79,7 +74,7 @@ requests <-
     )
 ```
 
-```{r map_requests, echo=FALSE}
+```{r map_requests}
 requests %>% 
   ggplot() +
   geom_sf(aes(color = sr_type)) +
@@ -133,18 +128,19 @@ citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Ba
 
 ```
 
+# Where is trash an issue in the area?
+
+- Citations by block
+- Citations by block number and street name
+
 ```{r map_citations}
 citations %>% 
   ggplot() +
   geom_sf(aes(color = description)) +
   area_layer +
-  theme_void()
+  theme_void() +
+  labs(caption = citations_source)
 ```
-
-# Where is trash an issue in the area?
-
-- Citations by block
-- Citations by block number and street name
 
 ## Citations by block
 
@@ -178,6 +174,55 @@ citations %>%
   
 ```
 
+
+# Plot citations by block number and street
+
+```{r plot_block_number_street}
+# FIXME: Figure out a reproducible way for distinguishing between groups of streets
+ns_street_cutoff <- 500 # Block number equal or less than this are in the NS group
+ew_street_cutoff <- 500 # Block numbers greater than this are in the EW group
+
+block_street_count <- citations |>
+  sf::st_drop_geometry() |>
+  count(street_name, block_number, name = "count", sort = TRUE) |>
+  relocate(block_number, .before = street_name)
+
+plot_block_street <- function(df, highlight_n = 10) {
+  df |>
+  ggplot() +
+  geom_point(aes(x = count, y = block_number), size = 3, alpha = 0.85, color = "purple") +
+  facet_wrap(~ street_name) +
+  gghighlight::gghighlight(count > highlight_n)
+}
+
+ns_streets <-
+  block_street_count |>
+  filter(block_number <= ns_street_cutoff) |> # Limit plot to N-S streets
+  plot_block_street()
+
+ew_streets <-
+  block_street_count |>
+  filter(block_number > ew_street_cutoff) |> # Limit plot to E-W streets
+  plot_block_street()
+
+ns_streets + ew_streets
+```
+
+
+```{r table_block_number_street}
+table_min_count <- 15
+
+block_street_count |>
+  filter(count >= table_min_count) |>
+  gt::gt() |>
+  gt::tab_header(
+    title = glue::glue("Blocks in  {params$area_name} with {table_min_count} or more citations since {params$year_start}")
+  ) |>
+  gt::tab_source_note(
+    citations_source
+  )
+```
+
 # How are citations addressing the issue of trash in this area?
 
 - Citation status
@@ -199,7 +244,7 @@ citations %>%
       citation_status == "A" ~ "Appealed",
       citation_status == "O" ~ "Open",
       citation_status == "P" ~ "Paid",
-      citation_status == "V" ~ "Voided" # TODO: Shuld voided citations be excluded?
+      citation_status == "V" ~ "Voided" # TODO: Should voided citations be excluded?
     )
   ) %>% 
   count(citation_status, name = "citations") %>%
@@ -219,13 +264,13 @@ citations %>%
 ```{r total_citations_over_time}
 #review this graph (binwidth)
 citations %>%
-  count(street_name, block_number, sort = TRUE) |>
   ggplot() +
-  geom_point(aes(x = violation_date))
+  geom_freqpoly(aes(x = violation_date)) +
+  labs(caption = citations_source)
 ```
 
 ```{r citation_status_over_time}
-#review this graph - Different way to plot this out? Maybe 4 line graphs?
+# review this graph - Different way to plot this out? Maybe 4 line graphs?
 citations %>% 
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = citation_status)) +
