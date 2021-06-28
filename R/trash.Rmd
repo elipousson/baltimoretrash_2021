@@ -4,6 +4,7 @@ output: html_document
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
   area_type: "neighborhood"
+  year_start: 2016
   # If union is TRUE, the union_name is required
   union: FALSE # TRUE
   union_name: NULL
@@ -110,7 +111,6 @@ requests %>%
 ## Get selected citations
 
 ```{r get_citations}
-
 if (params$area_type %in% c("neighborhood", "council district", "police district")) {
   citations <-
     get_area_citations(
@@ -119,7 +119,7 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
       description = "TRASH"
     ) %>%
     filter(
-      year(violation_date) >= 2016
+      year(violation_date) >= params$year_start
     ) %>%
     # Pull street number (address), block number, and street name from location
     mutate(
@@ -129,6 +129,8 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
     )
 }
 
+citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Baltimore"
+
 ```
 
 ```{r map_citations}
@@ -137,10 +139,14 @@ citations %>%
   geom_sf(aes(color = description)) +
   area_layer +
   theme_void()
-  
 ```
 
-## Plot citations by block
+# Where is trash an issue in the area?
+
+- Citations by block
+- Citations by block number and street name
+
+## Citations by block
 
 ```{r citation_block}
 citations %>% 
@@ -164,13 +170,18 @@ citations %>%
   theme(axis.text.y = element_text(size = 5))
 ```
 
-```{r citations_table}
+```{r citations_by_block_table}
 citations %>%
   st_drop_geometry() %>%
   count(block, name = "citations", sort = TRUE) %>%
   gt::gt()
   
 ```
+
+# How are citations addressing the issue of trash in this area?
+
+- Citation status
+- Citations over time
 
 ## Citation status 
 
@@ -188,7 +199,7 @@ citations %>%
       citation_status == "A" ~ "Appealed",
       citation_status == "O" ~ "Open",
       citation_status == "P" ~ "Paid",
-      citation_status == "V" ~ "Voided"
+      citation_status == "V" ~ "Voided" # TODO: Shuld voided citations be excluded?
     )
   ) %>% 
   count(citation_status, name = "citations") %>%
@@ -203,6 +214,8 @@ citations %>%
   theme(axis.text.y = element_text(size = 5))
 ```
 
+## Citations over time
+
 ```{r total_citations_over_time}
 #review this graph (binwidth)
 citations %>%
@@ -211,13 +224,12 @@ citations %>%
   geom_point(aes(x = violation_date))
 ```
 
-
-```{r citation_status_over_timer}
+```{r citation_status_over_time}
 #review this graph - Different way to plot this out? Maybe 4 line graphs?
 citations %>% 
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = citation_status)) +
-  theme_minimal()
+  labs(caption = citations_source)
 ```
 
 
