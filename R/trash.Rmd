@@ -22,12 +22,15 @@ library(ggplot2)
 library(dplyr)
 library(stringr)
 library(lubridate)
+library(patchwork)
 
 # Set default theme
 theme_set(theme_minimal())
 ```
 
-## Get area
+# Background
+
+## Area
 
 ```{r get_area}
 # Get an sf object with all neighborhoods unioned into a single area
@@ -50,7 +53,36 @@ area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashe
 
 ```
 
-## Get selected requests
+```{r map_area}
+area_boundary_color <- "purple"
+
+area_map <- ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
+  layer_area_streets(area = area, color = "gray85") +
+  layer_area_streets(area = area, sha_class = "all") +
+  geom_sf(data = area, color = area_boundary_color, fill = NA) +
+  theme_void() +
+  labs(
+    title = params$area_name
+  )
+
+city_map <- ggplot() +
+  geom_sf(data = baltimore_city, fill = "white") +
+  geom_sf(data = neighborhoods, fill = NA, color = "gray90", size = 0.4) +
+  geom_sf(data = area, fill = area_boundary_color, color = area_boundary_color) +
+  geom_sf(data = baltimore_city, size = 1.5, color = "black", fill = NA) +
+  theme_void()
+
+area_map +
+  inset_element(city_map, 0.7, 0, 1, 0.3)
+```
+
+## Data on trash
+
+- 311 service requests
+- ECB citations
+
+### Get selected requests
 
 ```{r get_requests}
 
@@ -74,36 +106,7 @@ requests <-
     )
 ```
 
-```{r map_requests}
-requests %>% 
-  ggplot() +
-  geom_sf(aes(color = sr_type)) +
-  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
-  theme_void()
-
-requests %>% 
-  ggplot() +
-  geom_sf(aes(color = days_to_close), alpha = 0.6) +
-  area_layer +
-  scale_color_viridis_c() +
-  theme_void()
-```
-
-```{r plot_requests}
-requests %>% 
-  ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
-  geom_point() +
-  theme_minimal()
-```
-
-```{r request_table}
-requests %>%
-  st_drop_geometry() %>% 
-  count(sr_type, name = "requests", sort = TRUE) %>% 
-  gt::gt()
-```
-
-## Get selected citations
+### Get selected citations
 
 ```{r get_citations}
 if (params$area_type %in% c("neighborhood", "council district", "police district")) {
@@ -130,8 +133,30 @@ citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Ba
 
 # Where is trash an issue in the area?
 
-- Citations by block
-- Citations by block number and street name
+- Requests
+  - Map of requests
+- Citations
+  - Citations by block
+  - Citations by block number and street name
+
+## Requests
+
+```{r map_requests}
+requests %>% 
+  ggplot() +
+  geom_sf(aes(color = sr_type)) +
+  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
+  theme_void()
+
+requests %>% 
+  ggplot() +
+  geom_sf(aes(color = days_to_close), alpha = 0.6) +
+  area_layer +
+  scale_color_viridis_c() +
+  theme_void()
+```
+
+## Citations
 
 ```{r map_citations}
 citations %>% 
@@ -174,8 +199,7 @@ citations %>%
   
 ```
 
-
-# Plot citations by block number and street
+### Plot citations by block number and street
 
 ```{r plot_block_number_street}
 # FIXME: Figure out a reproducible way for distinguishing between groups of streets
@@ -208,7 +232,6 @@ ew_streets <-
 ns_streets + ew_streets
 ```
 
-
 ```{r table_block_number_street}
 table_min_count <- 15
 
@@ -228,7 +251,7 @@ block_street_count |>
 - Citation status
 - Citations over time
 
-## Citation status 
+### Citation status 
 
 ```{r citations_status}
 citations %>%
@@ -259,7 +282,7 @@ citations %>%
   theme(axis.text.y = element_text(size = 5))
 ```
 
-## Citations over time
+### Citations over time
 
 ```{r total_citations_over_time}
 #review this graph (binwidth)
@@ -275,6 +298,22 @@ citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = citation_status)) +
   labs(caption = citations_source)
+```
+
+# How area service requests addressing the issue of trash in this area?
+
+```{r plot_requests}
+requests %>% 
+  ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
+  geom_point() +
+  theme_minimal()
+```
+
+```{r request_table}
+requests %>%
+  st_drop_geometry() %>% 
+  count(sr_type, name = "requests", sort = TRUE) %>% 
+  gt::gt()
 ```
 
 
