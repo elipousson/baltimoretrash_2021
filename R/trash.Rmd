@@ -170,11 +170,16 @@ citations %>%
 ## Citations by block
 
 ```{r citation_block}
-citations %>% 
+#How to organize this graph in descending order? 
+citations %>%
   ggplot() +
-    geom_bar(aes(x = as.factor(block))) +
-    coord_flip() +
-    theme(axis.text.y = element_text(size = 5))
+  geom_bar(aes(x = as.factor(block))) +
+  coord_flip() +
+  theme(axis.text.y = element_text(size = 5)) +
+  ggtitle("Citations per Block") +
+  xlab("Block") +
+  ylab("Total Citations")
+    
 
 library(WVPlots)
 citations %>%
@@ -188,7 +193,10 @@ citations %>%
   ggplot() +
   geom_bar(aes(x = as.factor(block), fill = description)) +
   coord_flip() +
-  theme(axis.text.y = element_text(size = 5))
+  theme(axis.text.y = element_text(size = 5)) +
+  ggtitle("Citation Types per Block") +
+  xlab("Block") +
+  ylab("Total Citations")
 ```
 
 ```{r citations_by_block_table}
@@ -256,7 +264,9 @@ block_street_count |>
 ```{r citations_status}
 citations %>%
   ggplot() +
-  geom_bar(aes(x = citation_status, fill = description))
+  geom_bar(aes(x = citation_status, fill = description)) +
+  ggtitle("Citation Status") +
+  ylab("Total Citations")
 ```
 
 ```{r citation_status_table}
@@ -279,7 +289,10 @@ citations %>%
   ggplot() +
   geom_bar(aes(x = as.factor(block), fill = citation_status)) +
   coord_flip() +
-  theme(axis.text.y = element_text(size = 5))
+  theme(axis.text.y = element_text(size = 5)) + 
+  ggtitle("Citation Status per Block") +
+  xlab("Block") + 
+  ylab("Citation Status")
 ```
 
 ### Citations over time
@@ -289,7 +302,10 @@ citations %>%
 citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date)) +
-  labs(caption = citations_source)
+  labs(caption = citations_source) +
+  ggtitle("Citations over Time") +
+  xlab("Date") + 
+  ylab("Total Citations")
 ```
 
 ```{r citation_status_over_time}
@@ -297,16 +313,23 @@ citations %>%
 citations %>% 
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = citation_status)) +
-  labs(caption = citations_source)
+  labs(caption = citations_source) +
+  ggtitle("Citation Status over Time") +
+  xlab("Date") + 
+  ylab("Total Citations")
 ```
 
 # How area service requests addressing the issue of trash in this area?
 
 ```{r plot_requests}
+#Change tittle? 
 requests %>% 
   ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
   geom_point() +
-  theme_minimal()
+  theme_minimal() + 
+  ggtitle("Service Requests Closure Time") +
+  xlab("Days to Close") + 
+  ylab("Request Type")
 ```
 
 ```{r request_table}
