@@ -338,5 +338,12 @@ requests %>%
   count(sr_type, name = "requests", sort = TRUE) %>% 
   gt::gt()
 ```
-
+```{r request_over_time}
+requests %>%
+  ggplot() +
+  geom_freqpoly(aes(x = created_date, color = sr_type)) +
+  ggtitle("Requests over Time") +
+  xlab("Date") +
+  ylab("Total Requests")
+```
 
