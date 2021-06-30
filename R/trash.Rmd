@@ -346,4 +346,15 @@ requests %>%
   xlab("Date") +
   ylab("Total Requests")
 ```
+```{r request_status_table}
+requests %>%
+  st_drop_geometry() %>% 
+  count(sr_status, name = "requests", sort = TRUE) %>% 
+  gt::gt()
+```
+
+
+
+
+
 
