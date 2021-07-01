@@ -262,6 +262,7 @@ block_street_count |>
 ### Citation status 
 
 ```{r citations_status}
+#plots the total number of citations per status
 citations %>%
   ggplot() +
   geom_bar(aes(x = citation_status, fill = description)) +
@@ -285,6 +286,7 @@ citations %>%
 ```
 
 ```{r citation_status_by_block}
+#plots the number of citations per block while breaking them down into their status
 citations %>%
   ggplot() +
   geom_bar(aes(x = as.factor(block), fill = citation_status)) +
@@ -321,8 +323,14 @@ citations %>%
 
 # How area service requests addressing the issue of trash in this area?
 
+-Service requests
+  - What is the avg number of days it takes to close each type of request?
+-Service requests over time
+-Service requests status
+
 ```{r plot_requests}
 #Change tittle? 
+#plots the number of days it takes for each service request to be closed
 requests %>% 
   ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
   geom_point() +
@@ -333,12 +341,14 @@ requests %>%
 ```
 
 ```{r request_table}
+#creates a table to summarize the total number of each type of service request
 requests %>%
   st_drop_geometry() %>% 
   count(sr_type, name = "requests", sort = TRUE) %>% 
   gt::gt()
 ```
 ```{r request_over_time}
+#plots the number of requests that were created per (day?) for each type of request
 requests %>%
   ggplot() +
   geom_freqpoly(aes(x = created_date, color = sr_type)) +
@@ -347,14 +357,12 @@ requests %>%
   ylab("Total Requests")
 ```
 ```{r request_status_table}
+#creates a table of the status for all requests
 requests %>%
   st_drop_geometry() %>% 
   count(sr_status, name = "requests", sort = TRUE) %>% 
   gt::gt()
 ```
-
-
-
 
 
 
