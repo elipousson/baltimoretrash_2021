@@ -257,6 +257,8 @@ block_street_count |>
 # How are citations addressing the issue of trash in this area?
 
 - Citation status
+  - Citation status map
+    -Does the map show any cluster(s) where citations are voided or appealed?
 - Citations over time
 
 ### Citation status 
@@ -320,7 +322,14 @@ citations %>%
   xlab("Date") + 
   ylab("Total Citations")
 ```
-
+```{r citation_status_map}
+#creates a map that shows the location of each citation based on their status
+citations %>% 
+  ggplot() +
+  geom_sf(aes(color = citation_status)) +
+  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
+  theme_void()
+```
 # How area service requests addressing the issue of trash in this area?
 
 -Service requests
