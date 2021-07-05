@@ -38,6 +38,8 @@ area <- get_area(params$area_type,
                  params$area_name,
                  union = params$union)
 
+nearby_areas <- get_nearby_areas(area, type = params$area_type)
+
 if (params$union) {
   area$name <- params$union_name
 
@@ -88,22 +90,57 @@ area_map +
 
 # Define list of trash-related request types
 select_request_types <-
-  c("HCD-Sanitation Property",
+  c(
+    "HCD-Sanitation Property",
     "HCD-Illegal Dumping",
     "SW-Dirty Street",
     "SW-Dirty Alley",
     "SW-Municipal Trash Can Concern",
-    "SW-Municipal Trash Can Stolen/Lost")
+    "SW-Municipal Trash Can Stolen/Lost"
+  )
 
 # Get 2021 requests of each type
 requests <-
   purrr::map_dfr(
     select_request_types,
     ~ get_area_requests(
-      area = area,
+      area = bind_rows(area, nearby_areas),
       year = 2021,
-      request_type = .x)
+      request_type = .x,
+      trim = TRUE
     )
+  )
+
+# Filtering requests by attribute only works if the area type is neighborhood, council district, or police district
+if (params$area_type == "neighborhood") {
+  requests <- requests %>%
+    filter(neighborhood %in% c(params$area_name, nearby_areas$name))
+
+  area_requests <- requests %>%
+    filter(neighborhood %in% params$area_name)
+
+  nearby_area_requests <- requests %>%
+    filter(neighborhood %in% nearby_areas$name)
+} else if (params$area_type == "council district") {
+  requests <- requests %>%
+    filter(council_district %in% c(params$area_name, nearby_areas$name))
+
+  area_requests <- requests %>%
+    filter(council_district %in% params$area_name)
+
+  nearby_area_requests <- requests %>%
+    filter(council_district %in% nearby_areas$name)
+} else if (params$area_type == "police district") {
+  requests <- requests %>%
+    filter(police_district %in% c(params$area_name, nearby_areas$name))
+
+  area_requests <- requests %>%
+    filter(police_district %in% params$area_name)
+
+  nearby_area_requests <- requests %>%
+    filter(police_district %in% nearby_areas$name)
+}
+
 ```
 
 ### Get selected citations
@@ -111,11 +148,16 @@ requests <-
 ```{r get_citations}
 if (params$area_type %in% c("neighborhood", "council district", "police district")) {
   citations <-
-    get_area_citations(
-      area_type = params$area_type,
-      area_name = params$area_name,
-      description = "TRASH"
-    ) %>%
+    purrr::map_dfr(
+      c(params$area_name, nearby_areas$name),
+      ~ get_area_citations(
+        area_type = params$area_type,
+        area_name = .x,
+        description = "TRASH"
+      )
+    )
+
+  citations <- citations %>%
     filter(
       year(violation_date) >= params$year_start
     ) %>%
@@ -125,6 +167,26 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
       block_number = floor(street_number / 100) * 100,
       street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}")))
     )
+}
+
+if (params$area_type == "neighborhood") {
+  area_citations <- citations %>%
+    filter(neighborhood %in% params$area_name)
+
+  nearby_citations <- citations %>%
+    filter(neighborhood %in% nearby_areas$name)
+} else if (params$area_type == "council district") {
+  area_citations <- citations %>%
+    filter(council_district %in% params$area_name)
+
+  nearby_citations <- citations %>%
+    filter(council_district %in% nearby_areas$name)
+} else if (params$area_type == "police district") {
+  area_citations <- citations %>%
+    filter(police_district %in% params$area_name)
+
+  nearby_citations <- citations %>%
+    filter(police_district %in% nearby_areas$name)
 }
 
 citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Baltimore"
