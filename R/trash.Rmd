@@ -260,6 +260,8 @@ block_street_count |>
   - Citation status map
     -Does the map show any cluster(s) where citations are voided or appealed?
 - Citations over time
+- Total paid per citation map
+  - Should the average amount paid per type of citation be found?
 
 ### Citation status 
 
@@ -299,6 +301,16 @@ citations %>%
   ylab("Citation Status")
 ```
 
+```{r citation_status_map}
+#creates a map that shows the location of each citation based on their status
+citations %>% 
+  ggplot() +
+  geom_sf(aes(color = citation_status)) +
+  geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
+  theme_void() +
+  labs(caption = citations_source)
+```
+
 ### Citations over time
 
 ```{r total_citations_over_time}
@@ -322,13 +334,18 @@ citations %>%
   xlab("Date") + 
   ylab("Total Citations")
 ```
-```{r citation_status_map}
-#creates a map that shows the location of each citation based on their status
-citations %>% 
+
+### Total paid per citation
+
+```{r total_paid_map}
+#maps out the total paid per citation
+citations %>%
   ggplot() +
-  geom_sf(aes(color = citation_status)) +
+  geom_sf(aes(color = total_paid)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
-  theme_void()
+  theme_void() +
+  scale_color_viridis_c() +
+  labs(caption = citations_source)
 ```
 # How area service requests addressing the issue of trash in this area?
 
