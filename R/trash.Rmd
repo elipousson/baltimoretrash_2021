@@ -23,6 +23,7 @@ library(dplyr)
 library(stringr)
 library(lubridate)
 library(patchwork)
+library(gt)
 
 # Set default theme
 theme_set(theme_minimal())
@@ -72,7 +73,7 @@ city_map <- ggplot() +
   geom_sf(data = baltimore_city, fill = "white") +
   geom_sf(data = neighborhoods, fill = NA, color = "gray90", size = 0.4) +
   geom_sf(data = area, fill = area_boundary_color, color = area_boundary_color) +
-  geom_sf(data = baltimore_city, size = 1.5, color = "black", fill = NA) +
+  geom_sf(data = baltimore_city, size = 1.25, color = "black", fill = NA) +
   theme_void()
 
 area_map +
@@ -94,10 +95,17 @@ select_request_types <-
     "HCD-Sanitation Property",
     "HCD-Illegal Dumping",
     "SW-Dirty Street",
-    "SW-Dirty Alley",
-    "SW-Municipal Trash Can Concern",
-    "SW-Municipal Trash Can Stolen/Lost"
+    "SW-Dirty Alley" #,
+    # Exclude request types with few requests
+    #"SW-Municipal Trash Can Concern",
+    #"SW-Municipal Trash Can Stolen/Lost",
+    #"SW-Public (Corner) Trash Can Issue",
+    #"SW-Public (Corner) Trash Can Request/Removal",
+    #"SW-Trash Can/Recycling Container Complaint",
+    #"SW-Park Cans"
   )
+
+months_prior <- 6
 
 # Get 2021 requests of each type
 requests <-
@@ -109,7 +117,16 @@ requests <-
       request_type = .x,
       trim = TRUE
     )
+  ) %>% 
+  filter(
+    # Filter to requests created in past 6 months
+    created_date > (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
+  ) %>% 
+  mutate(
+    # Remove agency prefix for service request type 
+    sr_type = str_remove(sr_type, "(HCD-)|(SW-)") 
   )
+
 
 # Filtering requests by attribute only works if the area type is neighborhood, council district, or police district
 if (params$area_type == "neighborhood") {
@@ -165,7 +182,13 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
     mutate(
       street_number = readr::parse_number(violation_location),
       block_number = floor(street_number / 100) * 100,
-      street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}")))
+      street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}"))),
+      citation_status = case_when(
+        citation_status == "A" ~ "Appealed",
+        citation_status == "O" ~ "Open",
+        citation_status == "P" ~ "Paid",
+        citation_status == "V" ~ "Voided" # TODO: Should voided citations be excluded?
+      )
     )
 }
 
@@ -203,17 +226,50 @@ citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Ba
 
 ## Requests
 
-```{r map_requests}
+```{r request_table}
+# Rank of requests in area
 requests %>% 
+  sf::st_drop_geometry() %>% 
+  mutate(
+    nearby = if_else(
+      service_request_num %in% nearby_area_requests$service_request_num,
+      "Nearby areas",
+      as.character(knitr::combine_words(area$name))
+      )
+    ) %>% 
+  select(nearby, sr_type, sr_status, outcome, days_to_close) %>% 
+  gtsummary::tbl_summary(
+    by = "nearby",
+    label = list(
+      sr_type = "Request type",
+      sr_status = "Current status",
+      outcome = "Request outcome", # TODO: Request outcome data is messy
+      days_to_close = "Days to close request"
+    )
+  ) %>% 
+  gtsummary::as_gt() %>% 
+  tab_source_note(
+    source_note = glue::glue("Nearby areas include {knitr::combine_words(nearby_areas$name)}.")
+  ) %>% 
+  tab_header(
+    title = glue::glue("Service requests in {knitr::combine_words(area$name)} and nearby areas")
+  )
+```
+
+```{r map_requests}
+area_requests %>% 
   ggplot() +
   geom_sf(aes(color = sr_type)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
   theme_void()
 
-requests %>% 
+area_requests %>% 
   ggplot() +
   geom_sf(aes(color = days_to_close), alpha = 0.6) +
   area_layer +
+  labs(
+    color = "Days to close"
+  ) +
   scale_color_viridis_c() +
   theme_void()
 ```
@@ -221,12 +277,13 @@ requests %>%
 ## Citations
 
 ```{r map_citations}
-citations %>% 
+area_citations %>% 
   ggplot() +
   geom_sf(aes(color = description)) +
   area_layer +
   theme_void() +
-  labs(caption = citations_source)
+  labs(caption = citations_source) +
+  facet_wrap(~description)
 ```
 
 ## Citations by block
@@ -265,8 +322,7 @@ citations %>%
 citations %>%
   st_drop_geometry() %>%
   count(block, name = "citations", sort = TRUE) %>%
-  gt::gt()
-  
+  gt()
 ```
 
 ### Plot citations by block number and street
@@ -303,15 +359,18 @@ ns_streets + ew_streets
 ```
 
 ```{r table_block_number_street}
-table_min_count <- 15
-
 block_street_count |>
-  filter(count >= table_min_count) |>
-  gt::gt() |>
-  gt::tab_header(
-    title = glue::glue("Blocks in  {params$area_name} with {table_min_count} or more citations since {params$year_start}")
+  slice_head(n = 10) |>
+  gt() |>
+  tab_header(
+    title = glue::glue("10 blocks in {knitr::combine_words(params$area_name)} with most citations since {params$year_start}")
   ) |>
-  gt::tab_source_note(
+  cols_label(
+    block_number = "Block",
+    street_name = "Street",
+    count = "Citations"
+  ) |>
+  tab_source_note(
     citations_source
   )
 ```
@@ -339,16 +398,8 @@ citations %>%
 ```{r citation_status_table}
 citations %>%
   st_drop_geometry() %>%
-  mutate(
-    citation_status = case_when(
-      citation_status == "A" ~ "Appealed",
-      citation_status == "O" ~ "Open",
-      citation_status == "P" ~ "Paid",
-      citation_status == "V" ~ "Voided" # TODO: Should voided citations be excluded?
-    )
-  ) %>% 
   count(citation_status, name = "citations") %>%
-  gt::gt()
+  gt()
 ```
 
 ```{r citation_status_by_block}
@@ -433,7 +484,7 @@ requests %>%
 requests %>%
   st_drop_geometry() %>% 
   count(sr_type, name = "requests", sort = TRUE) %>% 
-  gt::gt()
+  gt()
 ```
 ```{r request_over_time}
 #plots the number of requests that were created per (day?) for each type of request
@@ -449,7 +500,7 @@ requests %>%
 requests %>%
   st_drop_geometry() %>% 
   count(sr_status, name = "requests", sort = TRUE) %>% 
-  gt::gt()
+  gt()
 ```
 
 
