@@ -120,7 +120,7 @@ requests <-
   ) %>% 
   filter(
     # Filter to requests created in past 6 months
-    created_date > (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
+    created_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
   ) %>% 
   mutate(
     # Remove agency prefix for service request type 
@@ -190,6 +190,12 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
         citation_status == "V" ~ "Voided" # TODO: Should voided citations be excluded?
       )
     )
+  
+  # TODO: Decide if limiting citation data to last 6 months (or 12 months) is helpful in simplifying the analysis or presentation of the analysis
+  recent_citations <- citations %>%
+    filter(
+      violation_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
+    )
 }
 
 if (params$area_type == "neighborhood") {
@@ -211,6 +217,15 @@ if (params$area_type == "neighborhood") {
   nearby_citations <- citations %>%
     filter(police_district %in% nearby_areas$name)
 }
+
+citations <- citations %>% 
+  mutate(
+    nearby = if_else(
+      citation_no %in% nearby_citations$citation_no,
+      as.character(knitr::combine_words(area$name))
+      )
+  )
+      
 
 citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Baltimore"
 
@@ -276,14 +291,25 @@ area_requests %>%
 
 ## Citations
 
-```{r map_citations}
-area_citations %>% 
+```{r plot_citations_by_status_nearby}
+citations %>%
+  st_drop_geometry() %>% 
+  count(nearby, citation_status, sort = TRUE) %>% 
   ggplot() +
-  geom_sf(aes(color = description)) +
+  geom_col(aes(x = reorder(citation_status, n), y = n, fill = citation_status)) +
+  coord_flip() +
+  facet_wrap(~nearby)
+```
+
+```{r map_citations}
+citations %>% 
+  ggplot() +
+  geom_sf(aes(color = description), alpha = 0.75) +
   area_layer +
   theme_void() +
   labs(caption = citations_source) +
-  facet_wrap(~description)
+  set_map_limits(area = area, dist = 25)
+
 ```
 
 ## Citations by block
@@ -428,13 +454,15 @@ citations %>%
 
 ```{r total_citations_over_time}
 #review this graph (binwidth)
-citations %>%
+citations_over_time <- citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date)) +
-  labs(caption = citations_source) +
+ # labs(caption = citations_source) +
   ggtitle("Citations over Time") +
   xlab("Date") + 
   ylab("Total Citations")
+
+plotly::ggplotly(citations_over_time)
 ```
 
 ```{r citation_status_over_time}
