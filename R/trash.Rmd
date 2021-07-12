@@ -222,6 +222,7 @@ citations <- citations %>%
   mutate(
     nearby = if_else(
       citation_no %in% nearby_citations$citation_no,
+      "Nearby areas",
       as.character(knitr::combine_words(area$name))
       )
   )
