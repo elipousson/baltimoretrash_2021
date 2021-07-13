@@ -316,37 +316,37 @@ citations %>%
 ## Citations by block
 
 ```{r citation_block}
-#How to organize this graph in descending order? 
-citations %>%
+#Plots citations per blokc in descending order
+
+area_citations %>%
+  st_drop_geometry() %>%
+  count(block, sort = TRUE) %>%
   ggplot() +
-  geom_bar(aes(x = as.factor(block))) +
+  geom_col(aes(x = reorder(block, n), y = n)) +
   coord_flip() +
   theme(axis.text.y = element_text(size = 5)) +
   ggtitle("Citations per Block") +
   xlab("Block") +
   ylab("Total Citations")
-    
-
-library(WVPlots)
-citations %>%
-  ClevelandDotPlot("block", sort = 1, title = "Citations per block") +
-  coord_flip() +
-  theme(axis.text.y = element_text(size = 5))
+  
 ```
 
 ```{r citation_type}
-citations %>%
+area_citations %>%
+  st_drop_geometry() %>%
+  count(block, description, sort = TRUE) %>%
   ggplot() +
-  geom_bar(aes(x = as.factor(block), fill = description)) +
+  geom_col(aes(x = reorder(block, n), y = n,  fill = description)) +
   coord_flip() +
   theme(axis.text.y = element_text(size = 5)) +
   ggtitle("Citation Types per Block") +
   xlab("Block") +
   ylab("Total Citations")
+
 ```
 
 ```{r citations_by_block_table}
-citations %>%
+area_citations %>%
   st_drop_geometry() %>%
   count(block, name = "citations", sort = TRUE) %>%
   gt()
@@ -415,7 +415,7 @@ block_street_count |>
 
 ```{r citations_status}
 #plots the total number of citations per status
-citations %>%
+area_citations %>%
   ggplot() +
   geom_bar(aes(x = citation_status, fill = description)) +
   ggtitle("Citation Status") +
@@ -423,7 +423,7 @@ citations %>%
 ```
 
 ```{r citation_status_table}
-citations %>%
+area_citations %>%
   st_drop_geometry() %>%
   count(citation_status, name = "citations") %>%
   gt()
@@ -431,7 +431,7 @@ citations %>%
 
 ```{r citation_status_by_block}
 #plots the number of citations per block while breaking them down into their status
-citations %>%
+area_citations %>%
   ggplot() +
   geom_bar(aes(x = as.factor(block), fill = citation_status)) +
   coord_flip() +
@@ -443,7 +443,7 @@ citations %>%
 
 ```{r citation_status_map}
 #creates a map that shows the location of each citation based on their status
-citations %>% 
+area_citations %>% 
   ggplot() +
   geom_sf(aes(color = citation_status)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
@@ -468,7 +468,7 @@ plotly::ggplotly(citations_over_time)
 
 ```{r citation_status_over_time}
 # review this graph - Different way to plot this out? Maybe 4 line graphs?
-citations %>% 
+area_citations %>% 
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = citation_status)) +
   labs(caption = citations_source) +
@@ -481,7 +481,7 @@ citations %>%
 
 ```{r total_paid_map}
 #maps out the total paid per citation
-citations %>%
+area_citations %>%
   ggplot() +
   geom_sf(aes(color = total_paid)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
@@ -499,7 +499,7 @@ citations %>%
 ```{r plot_requests}
 #Change tittle? 
 #plots the number of days it takes for each service request to be closed
-requests %>% 
+area_requests %>% 
   ggplot(aes(x = days_to_close, y = sr_type, color = sr_type), alpha = 0.6) +
   geom_point() +
   theme_minimal() + 
@@ -510,14 +510,14 @@ requests %>%
 
 ```{r request_table}
 #creates a table to summarize the total number of each type of service request
-requests %>%
+area_requests %>%
   st_drop_geometry() %>% 
   count(sr_type, name = "requests", sort = TRUE) %>% 
   gt()
 ```
 ```{r request_over_time}
 #plots the number of requests that were created per (day?) for each type of request
-requests %>%
+area_requests %>%
   ggplot() +
   geom_freqpoly(aes(x = created_date, color = sr_type)) +
   ggtitle("Requests over Time") +
@@ -526,10 +526,11 @@ requests %>%
 ```
 ```{r request_status_table}
 #creates a table of the status for all requests
-requests %>%
+area_requests %>%
   st_drop_geometry() %>% 
   count(sr_status, name = "requests", sort = TRUE) %>% 
   gt()
+
 ```
 
 
