@@ -270,16 +270,18 @@ requests %>%
   tab_header(
     title = glue::glue("Service requests in {knitr::combine_words(area$name)} and nearby areas")
   )
+
 ```
 
 ```{r map_requests}
-area_requests %>% 
+requests %>% 
   ggplot() +
   geom_sf(aes(color = sr_type)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
-  theme_void()
+  theme_void() +
+   set_map_limits(area = area, dist = 50)
 
-area_requests %>% 
+requests %>% 
   ggplot() +
   geom_sf(aes(color = days_to_close), alpha = 0.6) +
   area_layer +
@@ -287,7 +289,9 @@ area_requests %>%
     color = "Days to close"
   ) +
   scale_color_viridis_c() +
-  theme_void()
+  theme_void() +
+  set_map_limits(area = area, dist = 25)
+
 ```
 
 ## Citations
@@ -300,6 +304,7 @@ citations %>%
   geom_col(aes(x = reorder(citation_status, n), y = n, fill = citation_status)) +
   coord_flip() +
   facet_wrap(~nearby)
+
 ```
 
 ```{r map_citations}
@@ -316,7 +321,7 @@ citations %>%
 ## Citations by block
 
 ```{r citation_block}
-#Plots citations per blokc in descending order
+#Plots citations per block in descending order
 
 area_citations %>%
   st_drop_geometry() %>%
@@ -432,13 +437,16 @@ area_citations %>%
 ```{r citation_status_by_block}
 #plots the number of citations per block while breaking them down into their status
 area_citations %>%
+  st_drop_geometry() %>%
+  count(block, citation_status, sort = TRUE) %>%
   ggplot() +
-  geom_bar(aes(x = as.factor(block), fill = citation_status)) +
+  geom_col(aes(x = reorder(block, n), y = n,  fill = citation_status)) +
   coord_flip() +
-  theme(axis.text.y = element_text(size = 5)) + 
+  theme(axis.text.y = element_text(size = 5)) +
   ggtitle("Citation Status per Block") +
-  xlab("Block") + 
+  xlab("Block") +
   ylab("Citation Status")
+
 ```
 
 ```{r citation_status_map}
@@ -449,6 +457,7 @@ area_citations %>%
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
   theme_void() +
   labs(caption = citations_source)
+
 ```
 
 ### Citations over time
@@ -475,6 +484,7 @@ area_citations %>%
   ggtitle("Citation Status over Time") +
   xlab("Date") + 
   ylab("Total Citations")
+
 ```
 
 ### Total paid per citation
@@ -506,6 +516,7 @@ area_requests %>%
   ggtitle("Service Requests Closure Time") +
   xlab("Days to Close") + 
   ylab("Request Type")
+
 ```
 
 ```{r request_table}
@@ -515,6 +526,7 @@ area_requests %>%
   count(sr_type, name = "requests", sort = TRUE) %>% 
   gt()
 ```
+
 ```{r request_over_time}
 #plots the number of requests that were created per (day?) for each type of request
 area_requests %>%
@@ -523,7 +535,9 @@ area_requests %>%
   ggtitle("Requests over Time") +
   xlab("Date") +
   ylab("Total Requests")
+
 ```
+
 ```{r request_status_table}
 #creates a table of the status for all requests
 area_requests %>%
