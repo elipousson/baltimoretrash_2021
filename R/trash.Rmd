@@ -187,8 +187,10 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
         citation_status == "A" ~ "Appealed",
         citation_status == "O" ~ "Open",
         citation_status == "P" ~ "Paid",
-        citation_status == "V" ~ "Voided" # TODO: Should voided citations be excluded?
-      )
+        citation_status == "V" ~ "Voided", # TODO: Should voided citations be excluded?
+      ),
+      description = replace( #Fixes one typo where "Accumulation" was spelled with two I's.
+        description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION")
     )
   
   # TODO: Decide if limiting citation data to last 6 months (or 12 months) is helpful in simplifying the analysis or presentation of the analysis
@@ -279,7 +281,10 @@ requests %>%
   geom_sf(aes(color = sr_type)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
   theme_void() +
-   set_map_limits(area = area, dist = 50)
+  labs(
+    color = "Service Request Type"
+  ) +
+  set_map_limits(area = area, dist = 50)
 
 requests %>% 
   ggplot() +
@@ -290,7 +295,7 @@ requests %>%
   ) +
   scale_color_viridis_c() +
   theme_void() +
-  set_map_limits(area = area, dist = 25)
+  set_map_limits(area = area, dist = 50)
 
 ```
 
@@ -303,7 +308,9 @@ citations %>%
   ggplot() +
   geom_col(aes(x = reorder(citation_status, n), y = n, fill = citation_status)) +
   coord_flip() +
-  facet_wrap(~nearby)
+  facet_wrap(~nearby) +
+  xlab("Citation Status") +
+  ylab("Total Citations")
 
 ```
 
@@ -313,7 +320,9 @@ citations %>%
   geom_sf(aes(color = description), alpha = 0.75) +
   area_layer +
   theme_void() +
-  labs(caption = citations_source) +
+  labs(caption = citations_source,
+    color = "Description"
+  ) +
   set_map_limits(area = area, dist = 25)
 
 ```
@@ -469,9 +478,7 @@ citations %>%
       citation_no %in% nearby_citations$citation_no,
       "Nearby areas",
       as.character(knitr::combine_words(area$name))
-      ),
-      description = replace(
-        description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION")
+      )
     ) %>% 
   select(nearby, description, citation_status) %>% 
   gtsummary::tbl_summary(
