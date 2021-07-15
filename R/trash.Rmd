@@ -460,6 +460,47 @@ area_citations %>%
 
 ```
 
+```{r citation_table}
+
+citations %>% 
+  sf::st_drop_geometry() %>% 
+  mutate(
+    nearby = if_else(
+      citation_no %in% nearby_citations$citation_no,
+      "Nearby areas",
+      as.character(knitr::combine_words(area$name))
+      ),
+      description = replace(
+        description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION")
+    ) %>% 
+  select(nearby, description, citation_status) %>% 
+  gtsummary::tbl_summary(
+    by = "nearby",
+    label = list(
+      citation_status = "Citation Status",
+      description = "Description"
+    )
+  ) %>% 
+  gtsummary::as_gt() %>% 
+  tab_source_note(
+    source_note = glue::glue("Nearby areas include {knitr::combine_words(nearby_areas$name)}.")
+  ) %>% 
+  tab_header(
+    title = glue::glue("ECB Citations in {knitr::combine_words(area$name)} and nearby areas")
+  )
+
+
+#Checks how many times the typo in "accumulation" occurs in order to fix it. 
+
+# citations %>%
+#   filter(description == "TRASH ACCUMULATION") %>%   
+#   nrow()
+# 
+# citations %>%
+#   filter(description == "TRASH ACCUMULATIION") %>%     Typo occurs once (1)
+#   nrow()
+
+```
 ### Citations over time
 
 ```{r total_citations_over_time}
