@@ -244,9 +244,9 @@ citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Ba
 
 ## Requests
 
-```{r request_table}
+```{r request_comparison_table}
 # Rank of requests in area
-requests %>% 
+request_comparison_table <- requests %>% 
   sf::st_drop_geometry() %>% 
   mutate(
     nearby = if_else(
@@ -273,19 +273,29 @@ requests %>%
     title = glue::glue("Service requests in {knitr::combine_words(area$name)} and nearby areas")
   )
 
+request_comparison_table
+
+gt::gtsave(request_comparison_table, "request_comparison_table.png")
+
 ```
 
-```{r map_requests}
+```{r map_requests_sr_type}
 requests %>% 
   ggplot() +
   geom_sf(aes(color = sr_type)) +
   geom_sf(data = area, fill = NA, color = "black", linetype = "dashed") +
   theme_void() +
   labs(
+    title = "Area requests by type",
     color = "Service Request Type"
   ) +
+ # scale_color_viridis_d(direction = -1) +
+  scale_color_brewer(palette = "Dark2") +
   set_map_limits(area = area, dist = 50)
+```
 
+
+```{r map_requests_days_to_close}
 requests %>% 
   ggplot() +
   geom_sf(aes(color = days_to_close), alpha = 0.6) +
@@ -328,6 +338,27 @@ citations %>%
 ```
 
 ## Citations by block
+
+```{r get_area_blocks}
+area_property <-
+  get_area_property(area = area, crop = FALSE)
+
+blocks <- area_property %>% 
+  group_by(block) %>% 
+  summarise(
+    geometry = st_union(geometry)
+  )
+
+
+blocks %>% 
+  ggplot() +
+  geom_sf(fill = NA, color = "black") +
+  geom_sf_label(aes(label = block)) +
+  theme_void()
+
+# mapview::mapview(blocks)
+```
+
 
 ```{r citation_block}
 #Plots citations per block in descending order
