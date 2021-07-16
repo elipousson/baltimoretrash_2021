@@ -490,14 +490,7 @@ area_citations %>%
 ```{r citation_table}
 
 citations %>% 
-  sf::st_drop_geometry() %>% 
-  mutate(
-    nearby = if_else(
-      citation_no %in% nearby_citations$citation_no,
-      "Nearby areas",
-      as.character(knitr::combine_words(area$name))
-      )
-    ) %>% 
+  sf::st_drop_geometry() %>%
   select(nearby, description, citation_status) %>% 
   gtsummary::tbl_summary(
     by = "nearby",
