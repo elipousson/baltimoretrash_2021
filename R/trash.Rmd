@@ -34,25 +34,28 @@ theme_set(theme_minimal())
 ## Area
 
 ```{r get_area}
-# Get an sf object with all neighborhoods unioned into a single area
-area <- get_area(params$area_type,
-                 params$area_name,
-                 union = params$union)
+#Runs external script with the get_area code
+source('get_area_script.R')
 
-nearby_areas <- get_nearby_areas(area, type = params$area_type)
-
-if (params$union) {
-  area$name <- params$union_name
-
-# Get an sf object with no union
-  area_not_union <-
-  get_area(
-    params$area_type,
-    params$area_name,
-    union = FALSE)
-}
-
-area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashed")
+# #Get an sf object with all neighborhoods unioned into a single area
+# area <- get_area(params$area_type,
+#                  params$area_name,
+#                  union = params$union)
+# 
+# nearby_areas <- get_nearby_areas(area, type = params$area_type)
+# 
+# if (params$union) {
+#   area$name <- params$union_name
+#   
+#   # Get an sf object with no union
+#   area_not_union <-
+#     get_area(
+#       params$area_type,
+#       params$area_name,
+#       union = FALSE)
+# }
+# 
+# area_layer <- geom_sf(data = area, fill = NA, color = "black", linetype = "dashed")
 
 ```
 
@@ -88,149 +91,154 @@ area_map +
 ### Get selected requests
 
 ```{r get_requests}
+#Runs external script with the get_requests code
+source('get_requests_script.R')
 
-# Define list of trash-related request types
-select_request_types <-
-  c(
-    "HCD-Sanitation Property",
-    "HCD-Illegal Dumping",
-    "SW-Dirty Street",
-    "SW-Dirty Alley" #,
-    # Exclude request types with few requests
-    #"SW-Municipal Trash Can Concern",
-    #"SW-Municipal Trash Can Stolen/Lost",
-    #"SW-Public (Corner) Trash Can Issue",
-    #"SW-Public (Corner) Trash Can Request/Removal",
-    #"SW-Trash Can/Recycling Container Complaint",
-    #"SW-Park Cans"
-  )
-
-months_prior <- 6
-
-# Get 2021 requests of each type
-requests <-
-  purrr::map_dfr(
-    select_request_types,
-    ~ get_area_requests(
-      area = bind_rows(area, nearby_areas),
-      year = 2021,
-      request_type = .x,
-      trim = TRUE
-    )
-  ) %>% 
-  filter(
-    # Filter to requests created in past 6 months
-    created_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
-  ) %>% 
-  mutate(
-    # Remove agency prefix for service request type 
-    sr_type = str_remove(sr_type, "(HCD-)|(SW-)") 
-  )
-
-
-# Filtering requests by attribute only works if the area type is neighborhood, council district, or police district
-if (params$area_type == "neighborhood") {
-  requests <- requests %>%
-    filter(neighborhood %in% c(params$area_name, nearby_areas$name))
-
-  area_requests <- requests %>%
-    filter(neighborhood %in% params$area_name)
-
-  nearby_area_requests <- requests %>%
-    filter(neighborhood %in% nearby_areas$name)
-} else if (params$area_type == "council district") {
-  requests <- requests %>%
-    filter(council_district %in% c(params$area_name, nearby_areas$name))
-
-  area_requests <- requests %>%
-    filter(council_district %in% params$area_name)
-
-  nearby_area_requests <- requests %>%
-    filter(council_district %in% nearby_areas$name)
-} else if (params$area_type == "police district") {
-  requests <- requests %>%
-    filter(police_district %in% c(params$area_name, nearby_areas$name))
-
-  area_requests <- requests %>%
-    filter(police_district %in% params$area_name)
-
-  nearby_area_requests <- requests %>%
-    filter(police_district %in% nearby_areas$name)
-}
+# # Define list of trash-related request types
+# select_request_types <-
+#   c(
+#     "HCD-Sanitation Property",
+#     "HCD-Illegal Dumping",
+#     "SW-Dirty Street",
+#     "SW-Dirty Alley" #,
+#     # Exclude request types with few requests
+#     #"SW-Municipal Trash Can Concern",
+#     #"SW-Municipal Trash Can Stolen/Lost",
+#     #"SW-Public (Corner) Trash Can Issue",
+#     #"SW-Public (Corner) Trash Can Request/Removal",
+#     #"SW-Trash Can/Recycling Container Complaint",
+#     #"SW-Park Cans"
+#   )
+# 
+# months_prior <- 6
+# 
+# # Get 2021 requests of each type
+# requests <-
+#   purrr::map_dfr(
+#     select_request_types,
+#     ~ get_area_requests(
+#       area = bind_rows(area, nearby_areas),
+#       year = 2021,
+#       request_type = .x,
+#       trim = TRUE
+#     )
+#   ) %>% 
+#   filter(
+#     # Filter to requests created in past 6 months
+#     created_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
+#   ) %>% 
+#   mutate(
+#     # Remove agency prefix for service request type 
+#     sr_type = str_remove(sr_type, "(HCD-)|(SW-)") 
+#   )
+# 
+# 
+# # Filtering requests by attribute only works if the area type is neighborhood, council district, or police district
+# if (params$area_type == "neighborhood") {
+#   requests <- requests %>%
+#     filter(neighborhood %in% c(params$area_name, nearby_areas$name))
+#   
+#   area_requests <- requests %>%
+#     filter(neighborhood %in% params$area_name)
+#   
+#   nearby_area_requests <- requests %>%
+#     filter(neighborhood %in% nearby_areas$name)
+# } else if (params$area_type == "council district") {
+#   requests <- requests %>%
+#     filter(council_district %in% c(params$area_name, nearby_areas$name))
+#   
+#   area_requests <- requests %>%
+#     filter(council_district %in% params$area_name)
+#   
+#   nearby_area_requests <- requests %>%
+#     filter(council_district %in% nearby_areas$name)
+# } else if (params$area_type == "police district") {
+#   requests <- requests %>%
+#     filter(police_district %in% c(params$area_name, nearby_areas$name))
+#   
+#   area_requests <- requests %>%
+#     filter(police_district %in% params$area_name)
+#   
+#   nearby_area_requests <- requests %>%
+#     filter(police_district %in% nearby_areas$name)
+# }
 
 ```
 
 ### Get selected citations
 
 ```{r get_citations}
-if (params$area_type %in% c("neighborhood", "council district", "police district")) {
-  citations <-
-    purrr::map_dfr(
-      c(params$area_name, nearby_areas$name),
-      ~ get_area_citations(
-        area_type = params$area_type,
-        area_name = .x,
-        description = "TRASH"
-      )
-    )
+#Runs external script with the get_citations code
+source('get_citations_script.R')
 
-  citations <- citations %>%
-    filter(
-      year(violation_date) >= params$year_start
-    ) %>%
-    # Pull street number (address), block number, and street name from location
-    mutate(
-      street_number = readr::parse_number(violation_location),
-      block_number = floor(street_number / 100) * 100,
-      street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}"))),
-      citation_status = case_when(
-        citation_status == "A" ~ "Appealed",
-        citation_status == "O" ~ "Open",
-        citation_status == "P" ~ "Paid",
-        citation_status == "V" ~ "Voided", # TODO: Should voided citations be excluded?
-      ),
-      description = replace( #Fixes one typo where "Accumulation" was spelled with two I's.
-        description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION")
-    )
-  
-  # TODO: Decide if limiting citation data to last 6 months (or 12 months) is helpful in simplifying the analysis or presentation of the analysis
-  recent_citations <- citations %>%
-    filter(
-      violation_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
-    )
-}
-
-if (params$area_type == "neighborhood") {
-  area_citations <- citations %>%
-    filter(neighborhood %in% params$area_name)
-
-  nearby_citations <- citations %>%
-    filter(neighborhood %in% nearby_areas$name)
-} else if (params$area_type == "council district") {
-  area_citations <- citations %>%
-    filter(council_district %in% params$area_name)
-
-  nearby_citations <- citations %>%
-    filter(council_district %in% nearby_areas$name)
-} else if (params$area_type == "police district") {
-  area_citations <- citations %>%
-    filter(police_district %in% params$area_name)
-
-  nearby_citations <- citations %>%
-    filter(police_district %in% nearby_areas$name)
-}
-
-citations <- citations %>% 
-  mutate(
-    nearby = if_else(
-      citation_no %in% nearby_citations$citation_no,
-      "Nearby areas",
-      as.character(knitr::combine_words(area$name))
-      )
-  )
-      
-
-citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Baltimore"
+# if (params$area_type %in% c("neighborhood", "council district", "police district")) {
+#   citations <-
+#     purrr::map_dfr(
+#       c(params$area_name, nearby_areas$name),
+#       ~ get_area_citations(
+#         area_type = params$area_type,
+#         area_name = .x,
+#         description = "TRASH"
+#       )
+#     )
+#   
+#   citations <- citations %>%
+#     filter(
+#       year(violation_date) >= params$year_start
+#     ) %>%
+#     # Pull street number (address), block number, and street name from location
+#     mutate(
+#       street_number = readr::parse_number(violation_location),
+#       block_number = floor(street_number / 100) * 100,
+#       street_name = str_trim(str_remove(violation_location, glue::glue("^{street_number}|^0{street_number}"))),
+#       citation_status = case_when(
+#         citation_status == "A" ~ "Appealed",
+#         citation_status == "O" ~ "Open",
+#         citation_status == "P" ~ "Paid",
+#         citation_status == "V" ~ "Voided", # TODO: Should voided citations be excluded?
+#       ),
+#       description = replace( #Fixes one typo where "Accumulation" was spelled with two I's.
+#         description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION")
+#     )
+#   
+#   # TODO: Decide if limiting citation data to last 6 months (or 12 months) is helpful in simplifying the analysis or presentation of the analysis
+#   recent_citations <- citations %>%
+#     filter(
+#       violation_date >= (lubridate::ymd(Sys.Date()) - lubridate::dmonths(months_prior))
+#     )
+# }
+# 
+# if (params$area_type == "neighborhood") {
+#   area_citations <- citations %>%
+#     filter(neighborhood %in% params$area_name)
+#   
+#   nearby_citations <- citations %>%
+#     filter(neighborhood %in% nearby_areas$name)
+# } else if (params$area_type == "council district") {
+#   area_citations <- citations %>%
+#     filter(council_district %in% params$area_name)
+#   
+#   nearby_citations <- citations %>%
+#     filter(council_district %in% nearby_areas$name)
+# } else if (params$area_type == "police district") {
+#   area_citations <- citations %>%
+#     filter(police_district %in% params$area_name)
+#   
+#   nearby_citations <- citations %>%
+#     filter(police_district %in% nearby_areas$name)
+# }
+# 
+# citations <- citations %>% 
+#   mutate(
+#     nearby = if_else(
+#       citation_no %in% nearby_citations$citation_no,
+#       "Nearby areas",
+#       as.character(knitr::combine_words(area$name))
+#     )
+#   )
+# 
+# 
+# citations_source <- "Source: Environmental Control Board (ECB) Citations/Open Baltimore"
 
 ```
 
@@ -275,7 +283,7 @@ request_comparison_table <- requests %>%
 
 request_comparison_table
 
-gt::gtsave(request_comparison_table, "request_comparison_table.png")
+#gt::gtsave(request_comparison_table, "request_comparison_table.png")
 
 ```
 
@@ -290,8 +298,9 @@ requests %>%
     color = "Service Request Type"
   ) +
  # scale_color_viridis_d(direction = -1) +
-  scale_color_brewer(palette = "Dark2") +
+  #scale_color_brewer(palette = "Dark2") +
   set_map_limits(area = area, dist = 50)
+
 ```
 
 
@@ -320,7 +329,11 @@ citations %>%
   coord_flip() +
   facet_wrap(~nearby) +
   xlab("Citation Status") +
-  ylab("Total Citations")
+  ylab("Total Citations") +
+  labs(
+    fill = "Citation Status"
+  ) +
+  ggtitle("Citation Status")
 
 ```
 
@@ -330,10 +343,11 @@ citations %>%
   geom_sf(aes(color = description), alpha = 0.75) +
   area_layer +
   theme_void() +
-  labs(caption = citations_source,
-    color = "Description"
+  labs(
+    color = "Description",
+    title = "Ellwood Park and its surrounding neighborhoods"
   ) +
-  set_map_limits(area = area, dist = 25)
+  set_map_limits(area = area, dist = 50)
 
 ```
 
@@ -354,11 +368,14 @@ blocks %>%
   ggplot() +
   geom_sf(fill = NA, color = "black") +
   geom_sf_label(aes(label = block)) +
-  theme_void()
+  theme_void() +
+  labs(
+    title = "Blocks in Ellwood Park/Monument"
+  )
 
-# mapview::mapview(blocks)
+ mapview::mapview(blocks)
+ 
 ```
-
 
 ```{r citation_block}
 #Plots citations per block in descending order
@@ -390,7 +407,7 @@ area_citations %>%
   labs(caption = citations_source,
        fill = "Description"
        )
-
+ggsave("cit_per_block.png")
 ```
 
 ```{r citations_by_block_table}
@@ -513,7 +530,8 @@ area_citations %>%
   theme_void() +
   labs(
     caption = citations_source,
-         color = "Citation Status"
+    color = "Citation Status",
+    title = "Citation Status "
   )
 
 ```
@@ -613,7 +631,6 @@ area_requests %>%
   labs(
     color = "Service Request Type"
   )
-
 ```
 
 ```{r request_table}
@@ -642,7 +659,6 @@ area_requests %>%
   labs(
     color = "Service Request Type"
   )
-
 ```
 
 ```{r request_status_table}
