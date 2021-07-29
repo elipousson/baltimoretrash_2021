@@ -1,0 +1,43 @@
+---
+title: "Trash related service requests and ECB citations"
+output: html_document
+params:
+  area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
+  area_type: "neighborhood"
+  year_start: 2016
+  # If union is TRUE, the union_name is required
+  union: FALSE # TRUE
+  union_name: NULL
+  # Map parameters
+  asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
+  diag_ratio: 0.08
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(sf)
+library(mapbaltimore)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(patchwork)
+library(gt)
+
+# Set default theme
+theme_set(theme_minimal())
+```
+
+```{r pull_scripts}
+#Gets the area type, name, nearby areas, and area outline (or Union info if applicable).
+source('get_area_script.R')
+
+#Gets selected type of requests, 6-months prior, area request info, and nearby areas request info. 
+source('get_requests_script.R')
+
+#Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
+source('get_citations_script.R')
+```
+
