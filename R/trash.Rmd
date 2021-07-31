@@ -561,3 +561,45 @@ area_requests %>%
 
 ```
 
+
+```{r}
+grid_adj <- area %>%
+  adjust_bbox(diag_ratio = params$diag_ratio, asp = params$asp) %>% 
+  sf::st_as_sfc() %>%
+  sf::st_as_sf() %>%
+  sf::st_make_grid(n = c(25, 25), square = FALSE) %>%
+  sf::st_as_sf()
+
+grid_adj$id <- seq(length(grid_adj$x))
+
+requests_by_type_grid <- requests %>%
+  st_join(grid_adj) %>%
+  st_drop_geometry() %>%
+  count(id, sr_type, name = "count") %>% 
+  right_join(grid_adj) %>%
+  tidyr::replace_na(list(count = 0)) %>%
+  filter(!is.na(sr_type)) %>% 
+  st_as_sf()
+
+area_map +
+  geom_sf(data = requests_by_type_grid, aes(fill = count), alpha = 0.75, color = NA) +
+  scale_fill_viridis_c() +
+  facet_wrap(~sr_type) +
+  theme_void()
+
+citations_by_desc_grid <- citations %>%
+  st_join(grid_adj) %>%
+  st_drop_geometry() %>%
+  count(id, description, name = "count") %>% 
+  right_join(grid_adj) %>%
+  tidyr::replace_na(list(count = 0)) %>%
+  filter(!is.na(description)) %>% 
+  st_as_sf()
+
+area_map +
+  geom_sf(data = citations_by_desc_grid, aes(fill = count), alpha = 0.75, color = NA) +
+  scale_fill_viridis_c() +
+  facet_wrap(~description) +
+  theme_void()
+```
+
