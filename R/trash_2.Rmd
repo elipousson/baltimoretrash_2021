@@ -1,6 +1,6 @@
 ---
 title: "Trash related service requests and ECB citations"
-output: html_document
+output: rmdformats::downcute
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
   area_type: "neighborhood"
@@ -41,5 +41,65 @@ source('get_requests_script.R')
 
 #Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
 source('get_citations_script.R')
+```
+
+```{r city_and_neighborhood_maps}
+#Creates map of Baltimore City.
+city_map <- ggplot() +
+  geom_sf(data = baltimore_city, fill = "grey") +
+  geom_sf(data = neighborhoods, fill = NA, color = "black") +
+  geom_sf(data = area, fill = "red", color = "red") +
+  geom_sf(data = baltimore_city, size = 1, color = "black", fill = NA) +
+  ggtitle("Baltimore City") +
+  theme_void()
+
+#Creates map of neighborhood.
+
+area_map <- ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
+  layer_area_streets(area = area, color = "gray85") +
+  #layer_area_streets(area = area, sha_class = "all") +
+  geom_sf(data = area, color = "black", size = 1, fill = NA) +
+  theme_void() +
+  labs(
+    title = params$area_name
+  )
+
+#displays maps
+city_map + area_map
+
+```
+
+# Service Requests
+
+```{r service_requests}
+
+
+```
+
+# ECB Citations
+
+```{r citations}
+
+
+```
+
+# Trash Issues
+
+```{r trash_issues}
+
+
+```
+
+# Nearby Areas
+
+```{r compare_with_nearby_areas}
+
+
+```
+
+```{r lower_requests_and_citations}
+
+
 ```
 
