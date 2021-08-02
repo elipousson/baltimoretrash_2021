@@ -1,0 +1,30 @@
+#body{
+  font-size: 20px;
+}
+
+h1{
+  text-align: left;
+}
+
+#main_maps{
+  text-align: center;
+}
+
+#service_requests{
+  height: 450px;
+  padding-bottom: 50px;
+  width: 100%;
+  font-size: 18px;
+}
+
+#col1{
+  float: left;
+  width: 70%;
+}
+
+#col2{
+  float: left;
+  width: 30%;
+  padding-left: 10px;
+  padding-top: 50px;
+}

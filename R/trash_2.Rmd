@@ -1,6 +1,7 @@
 ---
 title: "Trash related service requests and ECB citations"
-output: rmdformats::downcute
+output: html_document
+css: "css_style_sheet.css"
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
   area_type: "neighborhood"
@@ -12,6 +13,7 @@ params:
   asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
   diag_ratio: 0.08
 ---
+:::::{id="body"}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
@@ -46,7 +48,10 @@ source('get_citations_script.R')
 source('get_area_blocks_script.R')
 ```
 
+:::{id="main_maps"}
+
 ```{r city_and_neighborhood_maps}
+
 #Creates map of Baltimore City.
 city_map <- ggplot() +
   geom_sf(data = baltimore_city, fill = "grey") +
@@ -56,8 +61,8 @@ city_map <- ggplot() +
   ggtitle("Baltimore City") +
   theme_void()
 
-#Creates map of neighborhood.
 
+#Creates map of neighborhood.
 area_map <- ggplot() +
   layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
   layer_area_streets(area = area, color = "gray85") +
@@ -71,13 +76,20 @@ area_map <- ggplot() +
 #displays maps
 city_map + area_map
 
+  
 ```
+
+:::
 
 # Service Requests
 
 The location and the type of 311 service requests within the `r area$name` neighborhood
 over the past `r months_prior` months is shown on the map below. 
 
+
+::::{id="service_requests"} 
+
+:::{id="col1"}
 ```{r service_requests}
 #Creates map of service requests colored by request type
 area_requests %>% 
@@ -91,7 +103,16 @@ area_requests %>%
     color = "Service Request Type"
   )
 
+
 ```
+:::
+
+:::{id="col2"}
+100 Service Requests were made in `r area$name` over the past `r months_prior` months
+:::
+
+::::
+
 
 # ECB Citations
 
@@ -119,3 +140,4 @@ area_requests %>%
 
 ```
 
+:::::
