@@ -41,6 +41,9 @@ source('get_requests_script.R')
 
 #Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
 source('get_citations_script.R')
+
+
+source('get_area_blocks_script.R')
 ```
 
 ```{r city_and_neighborhood_maps}
@@ -72,8 +75,21 @@ city_map + area_map
 
 # Service Requests
 
-```{r service_requests}
+The location and the type of 311 service requests within the `r area$name` neighborhood
+over the past `r months_prior` months is shown on the map below. 
 
+```{r service_requests}
+#Creates map of service requests colored by request type
+area_requests %>% 
+  ggplot() +
+  geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
+  geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
+  geom_sf(aes(color = sr_type)) +
+  theme_void() +
+  labs(
+    title = "Area requests by type",
+    color = "Service Request Type"
+  )
 
 ```
 
