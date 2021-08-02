@@ -1,6 +1,6 @@
 ---
 title: "Trash related service requests and ECB citations"
-output: html_document
+output: rmdformats::downcute
 css: "css_style_sheet.css"
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
@@ -44,14 +44,12 @@ source('get_requests_script.R')
 #Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
 source('get_citations_script.R')
 
-
+#Gets blocks from the chosen area
 source('get_area_blocks_script.R')
 ```
 
-:::{id="main_maps"}
-
+::::{id="main_maps"}
 ```{r city_and_neighborhood_maps}
-
 #Creates map of Baltimore City.
 city_map <- ggplot() +
   geom_sf(data = baltimore_city, fill = "grey") +
@@ -75,11 +73,9 @@ area_map <- ggplot() +
 
 #displays maps
 city_map + area_map
-
-  
+ 
 ```
-
-:::
+::::
 
 # Service Requests
 
@@ -88,7 +84,6 @@ over the past `r months_prior` months is shown on the map below.
 
 
 ::::{id="service_requests"} 
-
 :::{id="col1"}
 ```{r service_requests}
 #Creates map of service requests colored by request type
@@ -102,8 +97,6 @@ area_requests %>%
     title = "Area requests by type",
     color = "Service Request Type"
   )
-
-
 ```
 :::
 
