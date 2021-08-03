@@ -1,7 +1,7 @@
 ---
 title: "Trash related service requests and ECB citations"
 output: rmdformats::downcute
-css: "css_style_sheet.css"
+css: "style_sheet.css"
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
   area_type: "neighborhood"
