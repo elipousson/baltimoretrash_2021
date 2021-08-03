@@ -82,7 +82,7 @@ city_map + area_map
 The 311 Service Requests describe complains about trash in Baltimore City. 
 The type of complains included in this analysis include Dirty Alleys, Dirty Streets, Illegal Dumping, and Sanitation Property. 
 
-The location and the type of 311 service requests within the `r area$name` neighborhood
+The location and the type of 311 service requests within the **`r area$name` `r params$area_type`**
 over the past `r months_prior` months is shown on the map below. 
 
 
@@ -110,7 +110,23 @@ total_requests <- nrow(area_requests)
 **`r total_requests`** Service Requests were made in `r area$name` over the past **`r months_prior` months**.
 :::
 
+```{r sr_request_types}
+#Plots the service requests types in the chosen area
+area_requests %>%
+  st_drop_geometry() %>%
+  count(sr_type, sort = TRUE) %>%
+  ggplot() +
+  geom_col(aes(x = reorder(sr_type, n), y = n, fill = sr_type)) +
+  ggtitle("Service Requests") +
+  xlab("Request Type") +
+  ylab("Total Requests") +
+  labs(
+       fill = "Request Type"
+       )
+```
 ::::
+<!-- End of Requests div-->
+
 
 
 # ECB Citations
