@@ -64,7 +64,6 @@ city_map <- ggplot() +
 area_map <- ggplot() +
   layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
   layer_area_streets(area = area, color = "gray85") +
-  #layer_area_streets(area = area, sha_class = "all") +
   geom_sf(data = area, color = "black", size = 1, fill = NA) +
   theme_void() +
   labs(
@@ -85,7 +84,7 @@ The type of complains included in this analysis include Dirty Alleys, Dirty Stre
 The location and the type of 311 service requests within the **`r area$name` `r params$area_type`**
 over the past `r months_prior` months is shown on the map below. 
 
-
+<!-- Beginning of Requests div -->
 ::::{id="service_requests"} 
 :::{id="col1"}
 ```{r service_requests}
@@ -101,7 +100,7 @@ area_requests %>%
     color = "Service Request Type"
   )
 
-#Counts the total number of requests
+#Counts the total number of area requests
 total_requests <- nrow(area_requests)
 ```
 :::
@@ -116,7 +115,7 @@ area_requests %>%
   st_drop_geometry() %>%
   count(sr_type, sort = TRUE) %>%
   ggplot() +
-  geom_col(aes(x = reorder(sr_type, n), y = n, fill = sr_type)) +
+  geom_col(aes(x = reorder(sr_type, n), y = n, fill = sr_type), show.legend = FALSE) +
   ggtitle("Service Requests") +
   xlab("Request Type") +
   ylab("Total Requests") +
@@ -125,16 +124,68 @@ area_requests %>%
        )
 ```
 ::::
-<!-- End of Requests div-->
+<!-- End of Requests div -->
 
 
 
 # ECB Citations
 
+The ECB Citations measure the city's code enforcement activities. This analysis focuses on the following citations: 
+Bulk Trash, Exterior Sanitary Maintenance, Occupant Trash Disposal, and Trash Accumulation.  
+
+The location and the type of ECB Citations within the **`r area$name` `r params$area_type`**
+over the past `r months_prior` months is shown on the map below. 
+
+<!-- Beginning of Citations div -->
+::::{id="ecb_citations"} 
+:::{id="col1"}
 ```{r citations}
+#Maps the area citations
+area_citations %>% 
+  ggplot() +
+  geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
+  geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
+  geom_sf(aes(color = description)) +
+  area_layer +
+  theme_void() +
+  labs(
+    color = "Description",
+    title = "ECB Citations",
+    caption = citations_source
+  ) +
+  scale_color_manual(labels=c("Bulk Trash", "Exterior Sanitary Maintenance", "Trash Accumulation"),
+                     values = c("#fb746b", "#2b9649", "#6ea1f9"))
 
-
+#Counts the total number of area citations
+total_citations <- nrow(area_citations)
 ```
+:::
+
+:::{id="col2"}
+**`r total_citations`** ECB Citations were made in `r area$name` over the past **`r months_prior` months**.
+:::
+
+```{r ecb_citations_types}
+#Plots the citation types in the chosen area
+#How to modify the x-axis marks to make them look like the map's legend? -FIX THIS.
+
+area_citations %>%
+  st_drop_geometry() %>%
+  count(description, sort = TRUE) %>%
+  ggplot() +
+  geom_col(aes(x = reorder(description, n), y = n, fill = description), show.legend = FALSE) +
+  ggtitle("ECB Citations") +
+  xlab("Citation Type") +
+  ylab("Total Citations") +
+  labs(
+       fill = "Citation Type",
+       caption = citations_source 
+       ) 
+```
+::::
+<!-- End of Citations div -->
+
+
 
 # Trash Issues
 
