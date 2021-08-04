@@ -63,7 +63,7 @@ city_map <- ggplot() +
 #Creates map of neighborhood.
 area_map <- ggplot() +
   layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
-  layer_area_streets(area = area, color = "gray85") +
+  geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
   geom_sf(data = area, color = "black", size = 1, fill = NA) +
   theme_void() +
   labs(
@@ -72,7 +72,6 @@ area_map <- ggplot() +
 
 #displays maps
 city_map + area_map
- 
 ```
 ::::
 
@@ -91,6 +90,7 @@ over the past `r months_prior` months is shown on the map below.
 #Creates map of service requests colored by request type
 area_requests %>% 
   ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
   geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
   geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
   geom_sf(aes(color = sr_type)) +
@@ -143,6 +143,7 @@ over the past `r months_prior` months is shown on the map below.
 #Maps the area citations
 area_citations %>% 
   ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) + 
   geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
   geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
   geom_sf(aes(color = description)) +
