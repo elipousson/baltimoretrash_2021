@@ -222,6 +222,8 @@ The area blocks with the highest number of citations since **`r params$year_star
 ```{r trash_issues}
 street_blocks %>% 
   ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
+  geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
   geom_sf(fill = NA, aes(color = street_block_number)) +
   geom_sf_label(aes(label = street_block_number), size = 1) +
   guides(color = "none") +
@@ -263,14 +265,50 @@ block_street_count %>%
 <!-- End of trash_issues div -->
 
 <!-- Beginning of Nearby Areas div -->
-
+:::::{id="nearby_areas"}
 # Nearby Areas
 
+::::{id="description"}
+The comparison between the service requests in the **`r area$name` `r params$area_type`** and **its surrounding 
+neighborhoods** is shown on the table below.
+
+This comparison is based on the number of service requests over the past **`r months_prior` months**.
+::::
+
+
 ```{r compare_with_nearby_areas}
+# Rank of requests in area
+request_comparison_table <- requests %>% 
+  sf::st_drop_geometry() %>% 
+  mutate(
+    nearby = if_else(
+      service_request_num %in% nearby_area_requests$service_request_num,
+      "Nearby areas",
+      as.character(knitr::combine_words(area$name))
+      )
+    ) %>% 
+  select(nearby, sr_type, sr_status, days_to_close) %>% 
+  gtsummary::tbl_summary(
+    by = "nearby",
+    label = list(
+      sr_type = "Request type",
+      sr_status = "Current status",
+      days_to_close = "Days to close request"
+    )
+  ) %>% 
+  gtsummary::as_gt() %>% 
+  tab_source_note(
+    source_note = glue::glue("Nearby areas include {knitr::combine_words(nearby_areas$name)}.")
+  ) %>% 
+  tab_header(
+    title = glue::glue("Service requests in {knitr::combine_words(area$name)} and nearby areas")
+  )
 
-
+request_comparison_table
 
 ```
+
+:::::
 
 ```{r lower_requests_and_citations}
 
