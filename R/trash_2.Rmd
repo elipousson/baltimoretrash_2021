@@ -1,6 +1,6 @@
 ---
 title: "Trash related service requests and ECB citations"
-output: rmdformats::downcute
+output: html_document
 css: "style_sheet.css"
 params:
   area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
@@ -13,8 +13,16 @@ params:
   asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
   diag_ratio: 0.08
 ---
-:::::{id="body"}
+<!--Increases the size of the display after the document is Knitted-->
+<style type="text/css"> 
+.main-container {
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 
+:::::{id="body"}
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
@@ -75,17 +83,20 @@ city_map + area_map
 ```
 ::::
 
+<!-- Beginning of Requests div -->
+:::::{id="service_requests"} 
 # Service Requests
 
+::::{id="description"}
 The 311 Service Requests describe complains about trash in Baltimore City. 
-The type of complains included in this analysis include Dirty Alleys, Dirty Streets, Illegal Dumping, and Sanitation Property. 
+The type of complains included in this analysis are Dirty Alleys, Dirty Streets, Illegal Dumping, and Sanitation Property. 
 
-The location and the type of 311 service requests within the **`r area$name` `r params$area_type`**
-over the past `r months_prior` months is shown on the map below. 
+The location and the type of 311 service requests in the **`r area$name` `r params$area_type`**
+over the past **`r months_prior` months** is shown on the map below. 
+::::
 
-<!-- Beginning of Requests div -->
-::::{id="service_requests"} 
-:::{id="col1"}
+::::{class="row"}
+:::{class="column left"}
 ```{r service_requests}
 #Creates map of service requests colored by request type
 area_requests %>% 
@@ -105,10 +116,14 @@ total_requests <- nrow(area_requests)
 ```
 :::
 
-:::{id="col2"}
+:::{class="column right"}
+:::{id="info"}
 **`r total_requests`** Service Requests were made in `r area$name` over the past **`r months_prior` months**.
 :::
+:::
+::::
 
+::::{id="extra_info"}
 ```{r sr_request_types}
 #Plots the service requests types in the chosen area
 area_requests %>%
@@ -124,21 +139,24 @@ area_requests %>%
        )
 ```
 ::::
+
+:::::
 <!-- End of Requests div -->
 
-
-
+<!-- Beginning of Citations div -->
+:::::{id="ecb_citations"} 
 # ECB Citations
 
+::::{id="description"}
 The ECB Citations measure the city's code enforcement activities. This analysis focuses on the following citations: 
 Bulk Trash, Exterior Sanitary Maintenance, Occupant Trash Disposal, and Trash Accumulation.  
 
 The location and the type of ECB Citations within the **`r area$name` `r params$area_type`**
 over the past `r months_prior` months is shown on the map below. 
+::::
 
-<!-- Beginning of Citations div -->
-::::{id="ecb_citations"} 
-:::{id="col1"}
+::::{class="row"}
+:::{class="column left"}
 ```{r citations}
 #Maps the area citations
 area_citations %>% 
@@ -162,10 +180,14 @@ total_citations <- nrow(area_citations)
 ```
 :::
 
-:::{id="col2"}
+:::{class="column right"}
+:::{id="info"}
 **`r total_citations`** ECB Citations were made in `r area$name` over the past **`r months_prior` months**.
 :::
+:::
+::::
 
+::::{id="extra_info"}
 ```{r ecb_citations_types}
 #Plots the citation types in the chosen area
 #How to modify the x-axis marks to make them look like the map's legend? -FIX THIS.
@@ -184,20 +206,68 @@ area_citations %>%
        ) 
 ```
 ::::
+:::::
 <!-- End of Citations div -->
 
-
-
+<!-- Beginning of trash_issues div -->
+:::::{id="trash_issues"}
 # Trash Issues
 
+::::{id="description"}
+The area blocks with the highest number of citations since **`r params$year_start`** in the **`r area$name` `r params$area_type`** are the following. 
+::::
+
+::::{class="row"}
+:::{class="column left"}
 ```{r trash_issues}
-
-
+street_blocks %>% 
+  ggplot() +
+  geom_sf(fill = NA, aes(color = street_block_number)) +
+  geom_sf_label(aes(label = street_block_number), size = 1) +
+  guides(color = "none") +
+  theme_void() +
+  labs(
+    title = "Numbered blocks in Ellwood Park/Monument"
+  )
 ```
+:::
+
+:::{class="column right"}
+:::{id="table"}
+```{r block_table}
+options(width = 2000)
+block_street_count <- citations %>%
+  sf::st_drop_geometry() %>%
+  count(street_name, block_number, name = "count", sort = TRUE) %>%
+  relocate(block_number, .before = street_name)
+
+block_street_count %>%
+  slice_head(n = 10) %>%
+  gt() %>%
+  tab_header(
+    title = glue::glue("10 blocks in {knitr::combine_words(params$area_name)} with most citations since {params$year_start}")
+  ) %>%
+  cols_label(
+    block_number = "Block",
+    street_name = "Street",
+    count = "Citations"
+  ) %>%
+  tab_source_note(
+    citations_source
+  )
+```
+:::
+:::
+::::
+:::::
+<!-- End of trash_issues div -->
+
+<!-- Beginning of Nearby Areas div -->
 
 # Nearby Areas
 
 ```{r compare_with_nearby_areas}
+
 
 
 ```
@@ -207,4 +277,9 @@ area_citations %>%
 
 ```
 
+<!-- End of trash_issues div -->
+
 :::::
+
+
+

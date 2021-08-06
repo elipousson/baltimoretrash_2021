@@ -7,23 +7,46 @@ h1{
 }
 
 #main_maps{
-  /*
-  ADD CSS TO MODIFY THIS DIV
-  */
+  text-align: center;
+}
+
+#description{
+  width: 50%;
+}
+
+.column{
+  float: left;
+  text-align: center;
+}
+
+.left{
+  width: 60%;
+}
+
+.right{
+  width: 40%;
+}
+
+.row:after{
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#info{
+  width: 60%;
+  padding-top: 20%;
+}
+
+#extra_info{
+  text-align: center;
 }
 
 #service_requests{
-  font-size: 18px;
+  padding-bottom: 1%;
 }
 
-#col1{
-  float: left;
-  width: 70%;
+#trash_issues .row{
+  padding-top: 2%;
 }
 
-#col2{
-  float: left;
-  width: 30%;
-  padding-left: 10px;
-  padding-top: 50px;
-}
