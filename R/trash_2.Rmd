@@ -152,7 +152,7 @@ The ECB Citations measure the city's code enforcement activities. This analysis 
 Bulk Trash, Exterior Sanitary Maintenance, Occupant Trash Disposal, and Trash Accumulation.  
 
 The location and the type of ECB Citations within the **`r area$name` `r params$area_type`**
-over the past `r months_prior` months is shown on the map below. 
+over the past **`r months_prior`** months is shown on the map below. 
 ::::
 
 ::::{class="row"}
@@ -269,13 +269,13 @@ block_street_count %>%
 # Nearby Areas
 
 ::::{id="description"}
-The comparison between the service requests in the **`r area$name` `r params$area_type`** and **its surrounding 
+The comparison between the number of service requests in the **`r area$name` `r params$area_type`** and **its surrounding 
 neighborhoods** is shown on the table below.
 
 This comparison is based on the number of service requests over the past **`r months_prior` months**.
 ::::
 
-
+::::{id="comparison_table"}
 ```{r compare_with_nearby_areas}
 # Rank of requests in area
 request_comparison_table <- requests %>% 
@@ -307,6 +307,40 @@ request_comparison_table <- requests %>%
 request_comparison_table
 
 ```
+::::
+
+::::{id="graphs"}
+::::{class="row"}
+:::{class="column left"}
+```{r area_citactions_over_time}
+area_citations %>%
+  ggplot() +
+  geom_freqpoly(aes(x = violation_date, color = description)) +
+  ggtitle("Citations over Time in Neighborhood") +
+  xlab("Date") +
+  ylab("Total Citations") +
+  labs(
+    color = "Citation Types"
+  )
+```
+:::
+
+:::{class="column right"}
+```{r nearby_citactions_over_time}
+citations %>%
+  ggplot() +
+  geom_freqpoly(aes(x = violation_date, color = description)) +
+  ggtitle("Citations over Time in Nearby Areas") +
+  xlab("Date") +
+  ylab("Total Citations") +
+  labs(
+    color = "Citation Types"
+  )
+```
+:::
+::::
+::::
+
 
 :::::
 
