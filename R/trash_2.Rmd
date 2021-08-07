@@ -209,7 +209,7 @@ area_citations %>%
 :::::
 <!-- End of Citations div -->
 
-<!-- Beginning of trash_issues div -->
+<!-- Beginning of Trash Issues div -->
 :::::{id="trash_issues"}
 # Trash Issues
 
@@ -262,7 +262,7 @@ block_street_count %>%
 :::
 ::::
 :::::
-<!-- End of trash_issues div -->
+<!-- End of Trash Issues div -->
 
 <!-- Beginning of Nearby Areas div -->
 :::::{id="nearby_areas"}
@@ -312,7 +312,7 @@ request_comparison_table
 ::::{id="graphs"}
 ::::{class="row"}
 :::{class="column left"}
-```{r area_citactions_over_time}
+```{r area_citations_over_time}
 area_citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = description)) +
@@ -326,7 +326,7 @@ area_citations %>%
 :::
 
 :::{class="column right"}
-```{r nearby_citactions_over_time}
+```{r nearby_citations_over_time}
 citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = description)) +
@@ -340,16 +340,10 @@ citations %>%
 :::
 ::::
 ::::
-
-
 :::::
+<!-- End of Nearby Areas div -->
 
-```{r lower_requests_and_citations}
 
-
-```
-
-<!-- End of trash_issues div -->
 
 :::::
 
