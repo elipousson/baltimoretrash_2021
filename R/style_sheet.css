@@ -45,7 +45,7 @@ h1{
   text-align: center;
 }
 
-#service_requests{
+#service_requests, #trash_issues, #fewer_issues{
   padding-bottom: 1%;
   background-color: #E9E9E9;
 }
@@ -54,9 +54,6 @@ h1{
   padding-top: 2%;
 }
 
-#trash_issues{
-  background-color: #E9E9E9;
-}
 #graphs{
   padding-top: 2%;
 }

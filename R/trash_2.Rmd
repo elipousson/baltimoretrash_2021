@@ -22,7 +22,7 @@ params:
 }
 </style>
 
-:::::{id="body"}
+::::::{id="body"}
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
@@ -237,7 +237,6 @@ street_blocks %>%
 :::{class="column right"}
 :::{id="table"}
 ```{r block_table}
-options(width = 2000)
 block_street_count <- citations %>%
   sf::st_drop_geometry() %>%
   count(street_name, block_number, name = "count", sort = TRUE) %>%
@@ -266,7 +265,7 @@ block_street_count %>%
 
 <!-- Beginning of Nearby Areas div -->
 :::::{id="nearby_areas"}
-# Nearby Areas
+# Nearby Areas - Trash Issues
 
 ::::{id="description"}
 The comparison between the number of service requests in the **`r area$name` `r params$area_type`** and **its surrounding 
@@ -316,7 +315,7 @@ request_comparison_table
 area_citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = description)) +
-  ggtitle("Citations over Time in Neighborhood") +
+  ggtitle("Citations Over Time in Neighborhood") +
   xlab("Date") +
   ylab("Total Citations") +
   labs(
@@ -330,7 +329,7 @@ area_citations %>%
 citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = description)) +
-  ggtitle("Citations over Time in Nearby Areas") +
+  ggtitle("Citations Over Time in Nearby Areas") +
   xlab("Date") +
   ylab("Total Citations") +
   labs(
@@ -343,9 +342,64 @@ citations %>%
 :::::
 <!-- End of Nearby Areas div -->
 
+<!-- Beginning of areas' fewer citations, unpaid citations, sr requests div -->
+:::::{id="fewer_issues"}
+# Other Trash Information
 
+::::{id="description"}
+- Areas in the `r params$area_type` with the lowest number of citations since **`r params$year_start`**
+- Map with the location of unpaid citations in **`r params$area_name`**
+- Table of areas in the **`r params$area_name` `r params$area_type`** with the lowest number of citations
+::::
 
+::::{id="graphs"}
+::::{class="row"}
+:::{class="column left"}
+```{r lowest_citations_table}
+#Table of the top 10 areas with the least number of Citations in the area
+block_street_count %>%
+  slice_tail(n = 10) %>% #THIS LINE GETS THE BOTTOM VALUES OF THE TABLE
+  gt() %>%
+  tab_header(
+    title = glue::glue("10 blocks in {knitr::combine_words(params$area_name)} with the least citations since {params$year_start}")
+  ) %>%
+  cols_label(
+    block_number = "Block",
+    street_name = "Street",
+    count = "Citations"
+  ) %>%
+  tab_source_note(
+    citations_source
+  )
+```
+:::
+
+:::{class="column right"}
+```{r unpaid_citations_map}
+area_citations %>% 
+  filter(citation_status == "Open") %>% #Filters all other types of citation status except Open
+  ggplot() +
+  layer_area_data(area = area, data = parks, fill = "forestgreen", alpha = 0.8) +
+  geom_sf(data = blocks, fill = NA, color = "black") +        #Blocks layer
+  geom_sf(data = area, color = "black", size = 1.25, fill = NA) +  #Neighborhood outline layer
+  geom_sf(aes(color = citation_status)) +
+  theme_void() +
+  labs(
+    caption = citations_source,
+    color = "Citation Status",
+    title = "Unpaid Citations"
+  )
+```
+:::
+
+```{r unpaid_citations_table}
+
+```
+
+::::
+::::
 :::::
+::::::
 
 
 
