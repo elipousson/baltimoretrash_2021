@@ -3,7 +3,7 @@ title: "Trash related service requests and ECB citations"
 output: html_document
 css: "style_sheet.css"
 params:
-  area_name: ["Ellwood Park/Monument"]  #, "Baltimore Highlands"
+  area_name: "Ellwood Park/Monument"
   area_type: "neighborhood"
   year_start: 2016
   # If union is TRUE, the union_name is required
@@ -13,6 +13,7 @@ params:
   asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
   diag_ratio: 0.08
 ---
+
 <!--Increases the size of the display after the document is Knitted-->
 <style type="text/css"> 
 .main-container {
@@ -27,6 +28,7 @@ params:
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
                       message = FALSE,
+                      error = TRUE,
                       cache = TRUE)
 
 library(sf)
@@ -42,18 +44,27 @@ library(gt)
 theme_set(theme_minimal())
 ```
 
-```{r pull_scripts}
+```{r get_area, code=xfun::read_utf8('get_area_script.R')}
 #Gets the area type, name, nearby areas, and area outline (or Union info if applicable).
-source('get_area_script.R')
+#source('get_area_script.R')
+```
 
+
+```{r get_requests, code=xfun::read_utf8('get_requests_script.R')}
 #Gets selected type of requests, 6-months prior, area request info, and nearby areas request info. 
-source('get_requests_script.R')
+#source('get_requests_script.R')
+```
 
+
+```{r get_citations, code=xfun::read_utf8('get_citations_script.R')}
 #Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
-source('get_citations_script.R')
+#source('get_citations_script.R')
+```
 
+
+```{r get_blocks, code=xfun::read_utf8('get_area_blocks_script.R')}
 #Gets blocks from the chosen area
-source('get_area_blocks_script.R')
+#source('get_area_blocks_script.R')
 ```
 
 ::::{id="main_maps"}
@@ -91,7 +102,7 @@ city_map + area_map
 The 311 Service Requests describe complains about trash in Baltimore City. 
 The type of complains included in this analysis are Dirty Alleys, Dirty Streets, Illegal Dumping, and Sanitation Property. 
 
-The location and the type of 311 service requests in the **`r area$name` `r params$area_type`**
+The location and the type of 311 service requests in the **`r params$area_name` `r params$area_type`**
 over the past **`r months_prior` months** is shown on the map below. 
 ::::
 
@@ -229,8 +240,9 @@ street_blocks %>%
   guides(color = "none") +
   theme_void() +
   labs(
-    title = "Numbered blocks in Ellwood Park/Monument"
+    title = glue::glue("Numbered blocks in {knitr::combine_words(params$area_name)}")
   )
+
 ```
 :::
 
