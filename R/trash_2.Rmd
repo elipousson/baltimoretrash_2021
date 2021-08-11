@@ -118,7 +118,7 @@ area_requests %>%
   geom_sf(aes(color = sr_type)) +
   theme_void() +
   labs(
-    title = "Area requests by type",
+    title = glue::glue("Service Requests by type in {knitr::combine_words(params$area_name)}"),
     color = "Service Request Type"
   )
 
@@ -142,12 +142,12 @@ area_requests %>%
   count(sr_type, sort = TRUE) %>%
   ggplot() +
   geom_col(aes(x = reorder(sr_type, n), y = n, fill = sr_type), show.legend = FALSE) +
-  ggtitle("Service Requests") +
   xlab("Request Type") +
   ylab("Total Requests") +
   labs(
-       fill = "Request Type"
-       )
+    title = glue::glue("Service Requests in {knitr::combine_words(params$area_name)}"),
+    fill = "Request Type"
+  )
 ```
 ::::
 
@@ -180,7 +180,7 @@ area_citations %>%
   theme_void() +
   labs(
     color = "Description",
-    title = "ECB Citations",
+    title = glue::glue("ECB Citations in {knitr::combine_words(params$area_name)}"),
     caption = citations_source
   ) +
   scale_color_manual(labels=c("Bulk Trash", "Exterior Sanitary Maintenance", "Trash Accumulation"),
@@ -212,9 +212,10 @@ area_citations %>%
   xlab("Citation Type") +
   ylab("Total Citations") +
   labs(
-       fill = "Citation Type",
-       caption = citations_source 
-       ) 
+    title = glue::glue("ECB Citations in {knitr::combine_words(params$area_name)}"),
+    fill = "Citation Type",
+    caption = citations_source
+  )
 ```
 ::::
 :::::
@@ -327,10 +328,10 @@ request_comparison_table
 area_citations %>%
   ggplot() +
   geom_freqpoly(aes(x = violation_date, color = description)) +
-  ggtitle("Citations Over Time in Neighborhood") +
   xlab("Date") +
   ylab("Total Citations") +
   labs(
+    title = glue::glue("Citations Over Time in {knitr::combine_words(params$area_name)}"),
     color = "Citation Types"
   )
 ```
@@ -397,17 +398,12 @@ area_citations %>%
   geom_sf(aes(color = citation_status)) +
   theme_void() +
   labs(
+    title = glue::glue("Unpaid Citations in {knitr::combine_words(params$area_name)}"),
     caption = citations_source,
-    color = "Citation Status",
-    title = "Unpaid Citations"
+    color = "Citation Status"
   )
 ```
 :::
-
-```{r unpaid_citations_table}
-
-```
-
 ::::
 ::::
 :::::
