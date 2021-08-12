@@ -173,9 +173,7 @@ area_citations %>%
     color = "Description",
     title = glue::glue("ECB Citations in {knitr::combine_words(params$area_name)}"),
     caption = citations_source
-  ) +
-  scale_color_manual(labels=c("Bulk Trash", "Exterior Sanitary Maintenance", "Trash Accumulation"),
-                     values = c("#fb746b", "#2b9649", "#6ea1f9"))
+  )
 
 #Counts the total number of area citations
 total_citations <- nrow(area_citations)

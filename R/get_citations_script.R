@@ -30,8 +30,16 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
         citation_status == "P" ~ "Paid",
         citation_status == "V" ~ "Voided", # TODO: Should voided citations be excluded?
       ),
-      description = replace( # Fixes one typo where "Accumulation" was spelled with two I's.
+      # Fixes one typo where "Accumulation" was spelled with two I's.
+      description = replace(
         description, description == "TRASH ACCUMULATIION", "TRASH ACCUMULATION"
+      ),
+      #Changes spelling of Description
+      description = case_when(
+        description == "BULK TRASH" ~ "Bulk Trash",
+        description == "EXTERIOR SANITARY MAINTENANCE - TRASH, GARBAGE AND DEBRIS" ~ "Exterior Sanitary Maintenance",
+        description == "SANITARY MAINTENANCE - OCCUPANT TRASH DISPOSAL" ~ "Sanitary Maintenance",
+        description == "TRASH ACCUMULATION" ~ "Trash Accumulation"
       )
     )
 
