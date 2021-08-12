@@ -41,7 +41,20 @@ library(patchwork)
 library(gt)
 
 # Set default theme
-theme_set(theme_minimal())
+prototype_theme <- theme_minimal() %+replace%
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(face = "bold"),
+    axis.ticks = element_line(colour = "black", size = 1),
+    legend.title = element_text(face = "bold", hjust = 0),
+    legend.text = element_text(size = 11)
+  )
+  
+theme_set(prototype_theme)
+  
+#Modify bar plots
+update_geom_defaults("col", list(alpha = 0.6))
 ```
 
 ```{r pull_scripts }
