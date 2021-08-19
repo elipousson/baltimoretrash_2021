@@ -44,6 +44,8 @@ requests <-
 
 
 # Filtering requests by attribute only works if the area type is neighborhood, council district, or police district
+# Using "area_requests" will only call the requests within the chosen neighborhood.
+# Using "requests" will call the requests within the chosen neighborhood, AND the requests from the nearby areas combined.
 if (params$area_type == "neighborhood") {
   requests <- requests %>%
     filter(neighborhood %in% c(params$area_name, nearby_areas$name))

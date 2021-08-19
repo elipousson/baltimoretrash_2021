@@ -50,6 +50,8 @@ if (params$area_type %in% c("neighborhood", "council district", "police district
     )
 }
 
+#Use "area_citations" to use citations that are in the selected neighborhood ONLY.
+#Using the variable "citations" will include the neighborhood citations, and the nearby areas' citations combined
 if (params$area_type == "neighborhood") {
   area_citations <- citations %>%
     filter(neighborhood %in% params$area_name)
