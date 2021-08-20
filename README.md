@@ -20,12 +20,19 @@ The goal of baltimoretrash_2021 is to explore service requests, ECB citations, a
 
 ## Features
 
-- Creates a base map of the selected neighborhood
-- Displays the type and location of 311 Service Requests
-- Displays the type and location of ECB Citations
-- Displays the blocks within the neighborhood with their block number and street name
-- Compares the selected neighborhood with its nearby neighborhoods
-- Displays citations over time
-- Knitting the document provides an HTML output with all the information
+- Creates a base map of the selected neighborhood.
+- Displays the type and location of 311 Service Requests.
+- Displays the type and location of ECB Citations.
+- Displays the blocks within the neighborhood with their block number and street name.
+- Compares the selected neighborhood with its nearby neighborhoods.
+- Displays citations over time.
+- Knitting the document provides an HTML output with all the information.
 
 ## How It Works
+
+Modifying the parameters changes the output of the code. The code, the scripts, and the graph descriptions should update automatically once it is run with the new parameters.
+- `area_name` specifies the chosen neighborhood (or group of neighborhoods).
+- `area_type` can be either "neighborhood" or "union."
+- `year_start` can be changed to any year from 2016 onwards.
+
+The colons within the code are being used as HTML divs to modify the output after the code is knitted. To get a better idea of how these divisions are being used, check the [style_sheet.css](https://github.com/elipousson/baltimoretrash_2021/blob/master/R/style_sheet.css) file.
