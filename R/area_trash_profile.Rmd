@@ -1,14 +1,12 @@
 ---
 title: "Trash related service requests and ECB citations"
 output: html_document
-css: "style_sheet.css"
+css: "style.css"
 params:
   area_name: "Ellwood Park/Monument"
   area_type: "neighborhood"
+  area_label: NULL
   year_start: 2016
-  # If union is TRUE, the union_name is required
-  union: FALSE # TRUE
-  union_name: NULL
   # Map parameters
   asp: "9:6.25" # "17:11"  # "3:2"  # "16:9"
   diag_ratio: 0.08
@@ -40,6 +38,8 @@ library(lubridate)
 library(patchwork)
 library(gt)
 
+knitr::read_chunk("misc.R")
+
 # Set default theme
 prototype_theme <- theme_minimal() %+replace%
   theme(
@@ -57,18 +57,20 @@ theme_set(prototype_theme)
 update_geom_defaults("col", list(alpha = 0.6))
 ```
 
-```{r pull_scripts }
-#Gets the area type, name, nearby areas, and area outline (or Union info if applicable).
-source('get_area_script.R')
+```{r get_area}
+# Gets the area type, name, nearby areas, and area outline
+```
 
-#Gets selected type of requests, 6-months prior, area request info, and nearby areas request info. 
-source('get_requests_script.R')
+```{r get_requests}
+# Gets selected type of requests, 6-months prior, area request info, and nearby areas request info. 
+```
 
-#Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
-source('get_citations_script.R')
+```{r get_citations}
+# Gets citations based on area type, provides citation source, area citations info, and nearby areas citations info.
+```
 
-#Gets blocks from the chosen area
-source('get_area_blocks_script.R')
+```{r get_area_blocks}
+# Gets blocks from the chosen area
 ```
 
 ::::{id="main_maps"}
@@ -106,8 +108,7 @@ city_map + area_map
 The 311 Service Requests describe complains about trash in Baltimore City. 
 The type of complains included in this analysis are Dirty Alleys, Dirty Streets, Illegal Dumping, and Sanitation Property. 
 
-The location and the type of 311 service requests in the **`r params$area_name` `r params$area_type`**
-over the past **`r months_prior` months** is shown on the map below. 
+The location and the type of 311 service requests in the **`r params$area_name` `r params$area_type`** over the past **`r months_prior` months** is shown on the map below. 
 ::::
 
 ::::{class="row"}
@@ -122,7 +123,7 @@ area_requests %>%
   geom_sf(aes(color = sr_type)) +
   theme_void() +
   labs(
-    title = glue::glue("Service Requests by type in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("Service Requests by type in {area_label}"),
     color = "Service Request Type"
   )
 
@@ -133,7 +134,7 @@ total_requests <- nrow(area_requests)
 
 :::{class="column right"}
 :::{id="info"}
-**`r total_requests`** Service Requests were made in `r area$name` over the past **`r months_prior` months**.
+**`r total_requests`** Service Requests were made in `r area_label` over the past **`r months_prior` months**.
 :::
 :::
 ::::
@@ -149,7 +150,7 @@ area_requests %>%
   xlab("Request Type") +
   ylab("Total Requests") +
   labs(
-    title = glue::glue("Service Requests in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("Service Requests in {area_label}"),
     fill = "Request Type"
   )
 ```
@@ -166,8 +167,7 @@ area_requests %>%
 The ECB Citations measure the city's code enforcement activities. This analysis focuses on the following citations: 
 Bulk Trash, Exterior Sanitary Maintenance, Occupant Trash Disposal, and Trash Accumulation.  
 
-The location and the type of ECB Citations within the **`r area$name` `r params$area_type`**
-over the past **`r months_prior`** months is shown on the map below. 
+The location and the type of ECB Citations within the **`r area$name` `r params$area_type`** over the past **`r months_prior`** months is shown on the map below. 
 ::::
 
 ::::{class="row"}
@@ -184,7 +184,7 @@ area_citations %>%
   theme_void() +
   labs(
     color = "Description",
-    title = glue::glue("ECB Citations in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("ECB Citations in {area_label}"),
     caption = citations_source
   )
 
@@ -203,7 +203,7 @@ total_citations <- nrow(area_citations)
 ::::{id="extra_info"}
 ```{r ecb_citations_types}
 #Plots the citation types in the chosen area
-#How to modify the x-axis marks to make them look like the map's legend? -FIX THIS.
+# FIXME: How to modify the x-axis marks to make them look like the map's legend?
 
 area_citations %>%
   st_drop_geometry() %>%
@@ -214,7 +214,7 @@ area_citations %>%
   xlab("Citation Type") +
   ylab("Total Citations") +
   labs(
-    title = glue::glue("ECB Citations in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("ECB Citations in {area_label}"),
     fill = "Citation Type",
     caption = citations_source
   )
@@ -243,7 +243,7 @@ street_blocks %>%
   guides(color = "none") +
   theme_void() +
   labs(
-    title = glue::glue("Numbered blocks in {knitr::combine_words(params$area_name)}")
+    title = glue::glue("Numbered blocks in {area_label}")
   )
 
 ```
@@ -261,7 +261,7 @@ block_street_count %>%
   slice_head(n = 10) %>%
   gt() %>%
   tab_header(
-    title = glue::glue("10 blocks in {knitr::combine_words(params$area_name)} with most citations since {params$year_start}")
+    title = glue::glue("10 blocks in {area_label} with most citations since {params$year_start}")
   ) %>%
   cols_label(
     block_number = "Block",
@@ -333,7 +333,7 @@ area_citations %>%
   xlab("Date") +
   ylab("Total Citations") +
   labs(
-    title = glue::glue("Citations Over Time in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("Citations Over Time in {area_label}"),
     color = "Citation Types"
   )
 ```
@@ -376,7 +376,7 @@ block_street_count %>%
   slice_tail(n = 10) %>% #THIS LINE GETS THE BOTTOM VALUES OF THE TABLE
   gt() %>%
   tab_header(
-    title = glue::glue("10 blocks in {knitr::combine_words(params$area_name)} with the least citations since {params$year_start}")
+    title = glue::glue("10 blocks in {area_label} with the least citations since {params$year_start}")
   ) %>%
   cols_label(
     block_number = "Block",
@@ -400,7 +400,7 @@ area_citations %>%
   geom_sf(aes(color = citation_status)) +
   theme_void() +
   labs(
-    title = glue::glue("Unpaid Citations in {knitr::combine_words(params$area_name)}"),
+    title = glue::glue("Unpaid Citations in {area_label}"),
     caption = citations_source,
     color = "Citation Status"
   )
