@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of baltimoretrash_2021 is to explore service requests, ECB citations, and other related open data to present an area-level analysis of trash and environmental health conditions in Baltimore, Maryland. This project is developed by the [Neighborhood Design Center](https://ndc-md.org/) with support from the [University of Baltimore Data Science Corps program](https://bniajfi.org/currentprojects/data_science_corps/).
+The goal of baltimoretrash_2021 is to explore service requests, environmental citations, and other related open data to present an area-level analysis of trash conditions in Baltimore, Maryland. This project is developed by German Paredes (Towson University) through the [University of Baltimore Data Science Corps program](https://bniajfi.org/currentprojects/data_science_corps/) with support from Eli Pousson at the [Neighborhood Design Center](https://ndc-md.org/).
 
 ## Key Questions
 ### Help residents answer key questions about trash in their neighborhoods
@@ -30,9 +30,10 @@ The goal of baltimoretrash_2021 is to explore service requests, ECB citations, a
 
 ## How It Works
 
-Modifying the parameters changes the output of the code. The code, the scripts, and the graph descriptions should update automatically once it is run with the new parameters.
-- `area_name` specifies the chosen neighborhood (or group of neighborhoods).
-- `area_type` can be either "neighborhood" or "union."
-- `year_start` can be changed to any year from 2016 onwards.
+This repository contains three main scripts:
 
-The colons within the code are being used as HTML divs to modify the output after the code is knitted. To get a better idea of how these divisions are being used, check the [style_sheet.css](https://github.com/elipousson/baltimoretrash_2021/blob/master/R/style_sheet.css) file.
+- `area_trash_profile.Rmd`: A parameterized RMarkdown report for describing area trash conditions using 311 service request and environmental control board citation data. Supported parameters include `area_name` (the name(s) of the area); `area_type` (a neighborhood, council district, or police district); and `year_start` (used to filter the citation data - requests are filtered to past 6 months). `area_name` and `area_type` must match the supported values for the `get_area` function from the [mapbaltimore package](https://elipousson.github.io/mapbaltimore/reference/get_area.html)).
+- `misc.R`: A set of scripts to get the area, requests (using [get_area_requests](https://elipousson.github.io/mapbaltimore/reference/get_area_requests.html)), citations (using [get_area_citations](https://elipousson.github.io/mapbaltimore/reference/get_area_citations.html)), and property data for the basemap (using [get_area_property](https://elipousson.github.io/mapbaltimore/reference/get_area_property.html))). These scripts are loaded into `area_trash_profile.Rmd` using knitr::read_chunks().
+- `render_area_trash_profile.R`: Two example scripts showing how to knit the RMarkdown report with parameters for multiple neighborhoods.
+
+For the Rmarkdown report, modifying the parameters changes the output of the code. The code, the scripts, and the graph descriptions should update automatically once it is run with the new parameters. The colons within the code are being used as HTML divs to modify the output after the code is knitted. To get a better idea of how these divisions are being used, check [style.css](https://github.com/elipousson/baltimoretrash_2021/blob/master/R/style.css).
